@@ -235,8 +235,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovementInput(Vector3 movementUp)
     {
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        float h = ReadHorizontalInput();
+        float v = ReadVerticalInput();
 
         Vector3 input = new Vector3(h, 0f, v);
         if (input.sqrMagnitude > 1f)
@@ -285,10 +285,35 @@ public class PlayerController : MonoBehaviour
         _planarVelocity = DampVector(_planarVelocity, desiredVelocity, sharpness, Time.deltaTime);
     }
 
+
+    float ReadHorizontalInput()
+    {
+        float axis = Input.GetAxisRaw("Horizontal");
+        if (Mathf.Abs(axis) > 0.001f)
+            return axis;
+
+        float key = 0f;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) key -= 1f;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) key += 1f;
+        return Mathf.Clamp(key, -1f, 1f);
+    }
+
+    float ReadVerticalInput()
+    {
+        float axis = Input.GetAxisRaw("Vertical");
+        if (Mathf.Abs(axis) > 0.001f)
+            return axis;
+
+        float key = 0f;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) key -= 1f;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) key += 1f;
+        return Mathf.Clamp(key, -1f, 1f);
+    }
+
     void HandleJumpInput(Vector3 movementUp)
     {
         // Variable jump height: cut upward velocity if button released
-        if (Input.GetButtonUp("Jump") || Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Space))
         {
             if (Vector3.Dot(_verticalVelocity, movementUp) > 0f)
             {
@@ -297,7 +322,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Buffer the jump input
-        if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
             _jumpBufferTimer = jumpBufferTime;
 
         // Can jump if: (grounded OR coyote active) AND (buffer active)
