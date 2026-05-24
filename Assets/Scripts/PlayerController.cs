@@ -256,6 +256,20 @@ public class PlayerController : MonoBehaviour
                 cameraRight = Vector3.Cross(movementUp, cameraForward).normalized;
         }
 
+        // Failsafe: si la camara queda alineada con el eje vertical o sin MainCamera,
+        // garantizamos una base ortonormal para no perder completamente el movimiento.
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(_lastFacing, movementUp).normalized;
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(Vector3.forward, movementUp).normalized;
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(Vector3.right, movementUp).normalized;
+
+        if (cameraRight.sqrMagnitude < 0.001f)
+            cameraRight = Vector3.Cross(movementUp, cameraForward).normalized;
+        if (cameraRight.sqrMagnitude < 0.001f)
+            cameraRight = Vector3.ProjectOnPlane(Vector3.right, movementUp).normalized;
+
         Vector3 desiredDirection = cameraForward * input.z + cameraRight * input.x;
         desiredDirection = Vector3.ProjectOnPlane(desiredDirection, movementUp);
         if (desiredDirection.sqrMagnitude > 1f)
