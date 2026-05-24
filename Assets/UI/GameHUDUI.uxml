@@ -1,0 +1,64 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/EchoesTheme.uss" />
+
+    <ui:VisualElement name="hud-root" class="root-fullscreen" picking-mode="Ignore">
+
+        <!-- Recording / Echo Count panel (top-left) -->
+        <ui:VisualElement name="hud-record-panel" class="hud-record-panel hidden">
+            <!-- Recording dot -->
+            <ui:VisualElement name="hud-record-dot" class="hud-record-dot hidden" />
+            <!-- Echo icon (when not recording) -->
+            <ui:VisualElement name="hud-echo-icon" class="hud-echo-icon hidden" />
+            <!-- Recording bar -->
+            <ui:VisualElement name="hud-record-bar-bg" class="hud-record-bar-bg hidden">
+                <ui:VisualElement name="hud-record-bar-fill" class="hud-record-bar-fill" />
+            </ui:VisualElement>
+            <!-- Echo count label -->
+            <ui:Label name="hud-echo-label" text="0/0" class="hud-echo-label hidden" />
+        </ui:VisualElement>
+
+        <!-- HUD Echo Lines (top-right) -->
+        <ui:VisualElement name="hud-stability" class="hud-container" picking-mode="Ignore">
+            <ui:VisualElement class="hud-bar-container">
+                <ui:VisualElement class="hud-bar-bg">
+                    <ui:VisualElement name="hud-stability-fill" class="hud-bar-fill hud-bar-fill--stability" />
+                </ui:VisualElement>
+                <ui:Label text="STABILITY" class="hud-bar-label" />
+            </ui:VisualElement>
+            <ui:VisualElement class="hud-bar-container" style="margin-top: 24px;">
+                <ui:VisualElement class="hud-bar-bg" style="width: 96px;">
+                    <ui:VisualElement name="hud-recall-fill" class="hud-bar-fill hud-bar-fill--recall" />
+                </ui:VisualElement>
+                <ui:Label text="RECALL" class="hud-bar-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Objective text (top-center) -->
+        <ui:VisualElement name="hud-objective-area" class="hud-objective-area" picking-mode="Ignore">
+            <ui:Label name="hud-objective-text" text="" class="hud-objective-text" />
+        </ui:VisualElement>
+
+        <!-- Toast / Prompt area (bottom-center) -->
+        <ui:VisualElement name="hud-toast-area" class="hud-toast-area" picking-mode="Ignore">
+            <ui:Label name="hud-toast-text" text="" class="hud-toast-text" />
+        </ui:VisualElement>
+
+        <!-- Echo state indicator (bottom-center) -->
+        <ui:VisualElement name="hud-echo-state-area" class="hud-echo-state-area" picking-mode="Ignore">
+            <ui:Label name="hud-echo-state-label" text="" class="hud-echo-state-label" />
+        </ui:VisualElement>
+
+        <!-- Footer status (bottom-right) -->
+        <ui:VisualElement name="hud-footer" class="footer-status" picking-mode="Ignore">
+            <ui:VisualElement name="hud-recording-status" class="footer-item footer-item--inactive">
+                <ui:Label text="●" class="footer-icon" />
+                <ui:Label text="RECORDING" class="footer-label" />
+            </ui:VisualElement>
+            <ui:VisualElement name="hud-playback-status" class="footer-item footer-item--active">
+                <ui:Label text="▶" class="footer-icon" />
+                <ui:Label text="PLAYBACK" class="footer-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

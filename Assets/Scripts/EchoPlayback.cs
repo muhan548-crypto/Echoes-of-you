@@ -39,6 +39,40 @@ public class EchoPlayback : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        ApplySavedEchoOpacity();
+    }
+
+    public void ApplySavedEchoOpacity()
+    {
+        float opacity = PlayerPrefs.GetFloat("EchoOpacity", 0.6f);
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        foreach (var r in renderers)
+        {
+            if (r.sharedMaterial != null)
+            {
+                Material mat = r.material;
+                if (mat.HasProperty("_Color"))
+                {
+                    Color col = mat.color;
+                    col.a = opacity;
+                    mat.color = col;
+                }
+                if (mat.HasProperty("_Mode"))
+                {
+                    mat.SetFloat("_Mode", 3f);
+                    mat.SetOverrideTag("RenderType", "Transparent");
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.EnableKeyword("_ALPHABLEND_ON");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                }
+            }
+        }
+    }
+
     public void BeginPlayback(IReadOnlyList<RecordFrame> frames, float duration)
     {
         _frames.Clear();

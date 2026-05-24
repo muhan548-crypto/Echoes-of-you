@@ -4,27 +4,34 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
+    const string AnimatorParamSpeed = "Speed";
+    const string AnimatorParamIsGrounded = "IsGrounded";
+    const string AnimatorParamIsRecording = "IsRecording";
+    const string AnimatorLegacyGrounded = "Grounded";
+    const string AnimatorLegacyFalling = "Falling";
+    const string AnimatorLegacyJump = "Jump";
+
     [Header("Movimiento")]
-    public float moveSpeed = 6f;
-    public float sprintMultiplier = 1.0f;
-    public float acceleration = 24f;
-    public float deceleration = 28f;
-    public float rotationSharpness = 14f;
+    public float moveSpeed = 8f;
+    public float sprintMultiplier = 1.6f;
+    public float acceleration = 45f;
+    public float deceleration = 50f;
+    public float rotationSharpness = 20f;
     [Range(0.1f, 1f)]
-    public float airControlFactor = 0.75f;
+    public float airControlFactor = 0.85f;
 
     [Header("Salto / Gravedad")]
-    public float jumpHeight = 1.55f;
-    public float gravityStrength = 26f;
+    public float jumpHeight = 3.2f;
+    public float gravityStrength = 28f;
     public Vector3 defaultGravityDirection = Vector3.down;
     public float groundedStickForce = 5f;
     public float gravityBlendSpeed = 9f;
-    public float fallGravityMultiplier = 1.6f;
+    public float fallGravityMultiplier = 2.0f;
     public bool alignToGroundNormal = true;
 
     [Header("Jump Assist")]
-    public float jumpBufferTime = 0.15f;
-    public float coyoteTime = 0.12f;
+    public float jumpBufferTime = 0.2f;
+    public float coyoteTime = 0.2f;
 
     [Header("Deteccion de suelo")]
     public Transform groundCheck;
@@ -39,6 +46,9 @@ public class PlayerController : MonoBehaviour
     Transform _cam;
     Animator _anim;
     Rigidbody _rb;
+    EchoRecorder _echoRecorder;
+    Transform _visualRoot;
+    Transform _modelRoot;
 
     readonly List<GravityZone> _gravityZones = new List<GravityZone>();
 
@@ -54,6 +64,14 @@ public class PlayerController : MonoBehaviour
     bool _jumpedThisFrame;
     bool _isFalling;
 
+    public enum PlayerAnimationState
+    {
+        Idle = 0,
+        Run = 1,
+        Jump = 2,
+        Recording = 3
+    }
+
     // Jump buffer & coyote
     float _jumpBufferTimer;
     float _coyoteTimer;
@@ -62,9 +80,11 @@ public class PlayerController : MonoBehaviour
     public Vector3 GravityDirection => _currentGravity.sqrMagnitude > 0.0001f ? _currentGravity.normalized : Vector3.down;
     public Vector3 GravityVector => _currentGravity;
     public bool IsGrounded => _grounded;
+    public PlayerAnimationState CurrentAnimationState { get; private set; }
 
     void Awake()
     {
+        gameObject.tag = "Player";
         _controller = GetComponent<CharacterController>();
         TryGetComponent(out _rb);
         if (_rb != null)
@@ -75,9 +95,11 @@ public class PlayerController : MonoBehaviour
 
         EnsureGroundCheck();
         EnsureVisualAnimator();
+        EnsureCameraFocus();
         RefreshCameraReference();
 
         _anim = GetComponentInChildren<Animator>();
+        _echoRecorder = GetComponent<EchoRecorder>();
         _targetGravity = SafeGravity(defaultGravityDirection, gravityStrength);
         _currentGravity = _targetGravity;
         _currentUp = -_currentGravity.normalized;
@@ -147,12 +169,20 @@ public class PlayerController : MonoBehaviour
         _controller.Move(motion);
 
         GroundProbe postMoveProbe = ProbeGround(movementUp);
-        // No re-groundear en el frame del salto — evita cancelar el impulso vertical
+        // No re-groundear en el frame del salto o mientras nos movemos hacia arriba (evita cancelar el salto instantáneamente)
         if (!_jumpedThisFrame)
         {
-            _grounded = postMoveProbe.isGrounded || _controller.isGrounded;
-            if (_grounded)
-                _verticalVelocity = GravityDirection * groundedStickForce;
+            bool movingUp = Vector3.Dot(_verticalVelocity, GravityDirection) < -0.1f;
+            if (!movingUp)
+            {
+                _grounded = postMoveProbe.isGrounded || _controller.isGrounded;
+                if (_grounded)
+                    _verticalVelocity = GravityDirection * groundedStickForce;
+            }
+            else
+            {
+                _grounded = false;
+            }
         }
 
         if (!_wasGrounded && _grounded)
@@ -205,8 +235,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovementInput(Vector3 movementUp)
     {
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        float h = ReadHorizontalInput();
+        float v = ReadVerticalInput();
 
         Vector3 input = new Vector3(h, 0f, v);
         if (input.sqrMagnitude > 1f)
@@ -226,6 +256,20 @@ public class PlayerController : MonoBehaviour
                 cameraRight = Vector3.Cross(movementUp, cameraForward).normalized;
         }
 
+        // Failsafe: si la camara queda alineada con el eje vertical o sin MainCamera,
+        // garantizamos una base ortonormal para no perder completamente el movimiento.
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(_lastFacing, movementUp).normalized;
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(Vector3.forward, movementUp).normalized;
+        if (cameraForward.sqrMagnitude < 0.001f)
+            cameraForward = Vector3.ProjectOnPlane(Vector3.right, movementUp).normalized;
+
+        if (cameraRight.sqrMagnitude < 0.001f)
+            cameraRight = Vector3.Cross(movementUp, cameraForward).normalized;
+        if (cameraRight.sqrMagnitude < 0.001f)
+            cameraRight = Vector3.ProjectOnPlane(Vector3.right, movementUp).normalized;
+
         Vector3 desiredDirection = cameraForward * input.z + cameraRight * input.x;
         desiredDirection = Vector3.ProjectOnPlane(desiredDirection, movementUp);
         if (desiredDirection.sqrMagnitude > 1f)
@@ -241,10 +285,44 @@ public class PlayerController : MonoBehaviour
         _planarVelocity = DampVector(_planarVelocity, desiredVelocity, sharpness, Time.deltaTime);
     }
 
+
+    float ReadHorizontalInput()
+    {
+        float axis = Input.GetAxisRaw("Horizontal");
+        if (Mathf.Abs(axis) > 0.001f)
+            return axis;
+
+        float key = 0f;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) key -= 1f;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) key += 1f;
+        return Mathf.Clamp(key, -1f, 1f);
+    }
+
+    float ReadVerticalInput()
+    {
+        float axis = Input.GetAxisRaw("Vertical");
+        if (Mathf.Abs(axis) > 0.001f)
+            return axis;
+
+        float key = 0f;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) key -= 1f;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) key += 1f;
+        return Mathf.Clamp(key, -1f, 1f);
+    }
+
     void HandleJumpInput(Vector3 movementUp)
     {
+        // Variable jump height: cut upward velocity if button released
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            if (Vector3.Dot(_verticalVelocity, movementUp) > 0f)
+            {
+                _verticalVelocity -= movementUp * (Vector3.Dot(_verticalVelocity, movementUp) * 0.5f);
+            }
+        }
+
         // Buffer the jump input
-        if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
             _jumpBufferTimer = jumpBufferTime;
 
         // Can jump if: (grounded OR coyote active) AND (buffer active)
@@ -262,8 +340,8 @@ public class PlayerController : MonoBehaviour
         _grounded = false;
         _jumpedThisFrame = true;
 
-        if (_anim != null && _anim.runtimeAnimatorController != null)
-            _anim.SetTrigger("Jump");
+        if (HasAnimatorParameter(AnimatorLegacyJump, AnimatorControllerParameterType.Trigger))
+            _anim.SetTrigger(AnimatorLegacyJump);
 
         GameFeelController.Instance?.PlayJump(transform.position, movementUp);
     }
@@ -296,14 +374,22 @@ public class PlayerController : MonoBehaviour
             return;
 
         Vector3 flatVelocity = Vector3.ProjectOnPlane(_controller.velocity, _currentUp);
-        _anim.SetFloat("Speed", flatVelocity.magnitude);
+        bool isRecording = _echoRecorder != null && _echoRecorder.IsRecording;
+        CurrentAnimationState = ResolveAnimationState(flatVelocity.magnitude, isRecording);
+
+        SetAnimatorFloatIfExists(AnimatorParamSpeed, flatVelocity.magnitude);
         
         Vector3 localVelocity = transform.InverseTransformDirection(_controller.velocity);
-        _anim.SetFloat("VelocityX", localVelocity.x);
-        _anim.SetFloat("VelocityZ", localVelocity.z);
+        SetAnimatorFloatIfExists("VelocityX", localVelocity.x);
+        SetAnimatorFloatIfExists("VelocityZ", localVelocity.z);
         
-        _anim.SetBool("Grounded", _grounded);
-        _anim.SetBool("Falling", _isFalling);
+        SetAnimatorBoolIfExists(AnimatorParamIsGrounded, _grounded);
+        SetAnimatorBoolIfExists(AnimatorParamIsRecording, isRecording);
+        SetAnimatorBoolIfExists(AnimatorLegacyGrounded, _grounded);
+        SetAnimatorBoolIfExists(AnimatorLegacyFalling, _isFalling);
+
+        if (HasAnimatorParameter("State", AnimatorControllerParameterType.Int))
+            _anim.SetInteger("State", (int)CurrentAnimationState);
     }
 
     void UpdateTargetGravity()
@@ -416,22 +502,31 @@ public class PlayerController : MonoBehaviour
             visualRoot = root.transform;
         }
 
+        _visualRoot = visualRoot;
+        _visualRoot.localPosition = Vector3.zero;
+        _visualRoot.localRotation = Quaternion.identity;
+        _visualRoot.localScale = Vector3.one;
+
         if (visualRoot.childCount == 0)
             CreateFallbackVisual(visualRoot);
 
-        Transform modelRoot = visualRoot.GetChild(0);
-        Animator visualAnimator = modelRoot.GetComponent<Animator>();
+        _modelRoot = visualRoot.GetChild(0);
+
+        Animator visualAnimator = _modelRoot.GetComponent<Animator>();
         if (visualAnimator == null)
-            visualAnimator = modelRoot.GetComponentInChildren<Animator>(true);
+            visualAnimator = _modelRoot.GetComponentInChildren<Animator>(true);
         if (visualAnimator != null)
         {
             visualAnimator.applyRootMotion = false;
             visualAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            visualAnimator.updateMode = AnimatorUpdateMode.Normal;
         }
 
-        SkinnedMeshRenderer[] renderers = modelRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        SkinnedMeshRenderer[] renderers = _modelRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         for (int i = 0; i < renderers.Length; i++)
             renderers[i].updateWhenOffscreen = true;
+
+        _anim = visualAnimator;
     }
 
     void CreateFallbackVisual(Transform visualRoot)
@@ -463,52 +558,25 @@ public class PlayerController : MonoBehaviour
     {
         _isDead = true;
         _controller.enabled = false;
-        GameFeelController.Instance?.PlayPlayerDeath(transform.position);
-        Invoke(nameof(RestartScene), 1.2f);
-    }
-
-    void RestartScene()
-    {
-        if (Camera.main != null)
+        
+        if (LevelRuntimeController.Instance != null)
         {
-#if UNITY_POST_PROCESSING_STACK_V2
-            var ppLayer = Camera.main.GetComponent<UnityEngine.Rendering.PostProcessing.PostProcessLayer>();
-            if (ppLayer != null)
-                ppLayer.enabled = false; // Workaround for Unity PostProcessing NRE on scene reload
-#endif
+            LevelRuntimeController.Instance.HandlePlayerDeath(transform.position, 1.2f);
         }
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        else
+        {
+            StartCoroutine(FallbackRestart());
+        }
     }
 
-    void OnGUI()
+    System.Collections.IEnumerator FallbackRestart()
     {
-        if (!_isDead)
-            return;
-
-        GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.fontSize = 50;
-        style.alignment = TextAnchor.MiddleCenter;
-        style.normal.textColor = Color.red;
-        style.fontStyle = FontStyle.Bold;
-
-        Rect bounds = new Rect(0, 0, Screen.width, Screen.height);
-        var shadowStyle = new GUIStyle(style);
-        shadowStyle.normal.textColor = Color.black;
-
-        Rect shadowRect = new Rect(2, 2, Screen.width, Screen.height);
-        GUI.Label(shadowRect, "HAS CAIDO AL VACIO", shadowStyle);
-        GUI.Label(bounds, "HAS CAIDO AL VACIO", style);
-
-        style.fontSize = 20;
-        style.normal.textColor = Color.white;
-        shadowStyle.fontSize = 20;
-        shadowStyle.normal.textColor = Color.black;
-
-        Rect hintRect = new Rect(0, Screen.height * 0.5f + 40, Screen.width, 50);
-        Rect hintShadowRect = new Rect(2, Screen.height * 0.5f + 42, Screen.width, 50);
-        GUI.Label(hintShadowRect, "Reiniciando...", shadowStyle);
-        GUI.Label(hintRect, "Reiniciando...", style);
+        yield return new WaitForSecondsRealtime(1.2f);
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
+
+
 
     static Vector3 SafeGravity(Vector3 direction, float strength)
     {
@@ -519,6 +587,105 @@ public class PlayerController : MonoBehaviour
     static float DampingFactor(float sharpness, float deltaTime)
     {
         return 1f - Mathf.Exp(-Mathf.Max(0f, sharpness) * deltaTime);
+    }
+
+    void EnsureCameraFocus()
+    {
+        Transform focus = transform.Find("CameraFocus");
+        if (focus == null)
+        {
+            GameObject focusObject = new GameObject("CameraFocus");
+            focusObject.transform.SetParent(transform, false);
+            focus = focusObject.transform;
+        }
+
+        float focusHeight = Mathf.Clamp(_controller.height * 0.68f, 1.05f, 1.3f);
+        focus.localPosition = new Vector3(0f, focusHeight, 0.08f);
+        focus.localRotation = Quaternion.identity;
+        focus.localScale = Vector3.one;
+    }
+
+    void AlignModelToFeet()
+    {
+        if (_modelRoot == null || !TryGetModelBounds(out Bounds bounds))
+            return;
+
+        Vector3 up = transform.up.sqrMagnitude > 0.001f ? transform.up.normalized : Vector3.up;
+        Vector3 lateralOffset = Vector3.ProjectOnPlane(bounds.center - transform.position, up);
+        _modelRoot.position -= lateralOffset;
+
+        if (!TryGetModelBounds(out bounds))
+            return;
+
+        Vector3 currentFeet = bounds.center - up * bounds.extents.y;
+        float feetDelta = Vector3.Dot(transform.position - currentFeet, up);
+        _modelRoot.position += up * feetDelta;
+    }
+
+    bool TryGetModelBounds(out Bounds bounds)
+    {
+        bounds = default;
+        if (_modelRoot == null)
+            return false;
+
+        Renderer[] renderers = _modelRoot.GetComponentsInChildren<Renderer>(true);
+        bool found = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererRef = renderers[i];
+            if (rendererRef == null)
+                continue;
+
+            if (!found)
+            {
+                bounds = rendererRef.bounds;
+                found = true;
+            }
+            else
+            {
+                bounds.Encapsulate(rendererRef.bounds);
+            }
+        }
+
+        return found;
+    }
+
+    PlayerAnimationState ResolveAnimationState(float speed, bool isRecording)
+    {
+        if (isRecording)
+            return PlayerAnimationState.Recording;
+        if (!_grounded || _jumpedThisFrame || _isFalling)
+            return PlayerAnimationState.Jump;
+        if (speed > 0.15f)
+            return PlayerAnimationState.Run;
+        return PlayerAnimationState.Idle;
+    }
+
+    bool HasAnimatorParameter(string parameterName, AnimatorControllerParameterType parameterType)
+    {
+        if (_anim == null)
+            return false;
+
+        AnimatorControllerParameter[] parameters = _anim.parameters;
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (parameters[i].type == parameterType && parameters[i].name == parameterName)
+                return true;
+        }
+
+        return false;
+    }
+
+    void SetAnimatorBoolIfExists(string parameterName, bool value)
+    {
+        if (HasAnimatorParameter(parameterName, AnimatorControllerParameterType.Bool))
+            _anim.SetBool(parameterName, value);
+    }
+
+    void SetAnimatorFloatIfExists(string parameterName, float value)
+    {
+        if (HasAnimatorParameter(parameterName, AnimatorControllerParameterType.Float))
+            _anim.SetFloat(parameterName, value);
     }
 
     static Vector3 DampVector(Vector3 current, Vector3 target, float sharpness, float deltaTime)

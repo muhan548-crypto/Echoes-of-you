@@ -1,0 +1,317 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/EchoesTheme.uss" />
+    
+    <ui:VisualElement name="root" class="root-fullscreen">
+        <!-- Background (swappable via C#) -->
+        <ui:VisualElement name="menu-bg" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0.2; background-image: url('project://database/Assets/UI/Images/void_fog_bg.png');" />
+        
+        <!-- Top bar -->
+        <ui:VisualElement class="header-bar main-menu-header">
+            <ui:Label name="hero-title" text="ISOLATED" class="header-title" />
+        </ui:VisualElement>
+        
+        <!-- Side Navigation -->
+        <ui:VisualElement name="side-nav" class="side-nav">
+            <!-- Header -->
+            <ui:VisualElement>
+                <ui:VisualElement style="margin-bottom: 96px;">
+                    <ui:Label text="FRAGMENT_01" class="text-headline-md" style="color: #c2c1ff; letter-spacing: 4px;" />
+                    <ui:Label text="COGNITIVE_SYNC_ACTIVE" class="text-label-caps" style="color: #464554; opacity: 0.7; margin-top: 4px;" />
+                </ui:VisualElement>
+                
+                <!-- Nav items -->
+                <ui:VisualElement style="flex-direction: column;">
+                    <ui:Button name="nav-newgame" text="VOID" class="nav-item">
+                    </ui:Button>
+                    <ui:Button name="nav-continue" text="MEMORIES" class="nav-item">
+                    </ui:Button>
+                    <ui:Button name="nav-levels" text="STABILITY" class="nav-item nav-item--active">
+                    </ui:Button>
+                    <ui:Button name="nav-settings" text="SYSTEM" class="nav-item">
+                    </ui:Button>
+                    <ui:Button name="nav-exit" text="DISCONNECT" class="nav-item" style="margin-top: 24px; color: rgba(255,180,171,0.5);">
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            
+            <!-- User profile at bottom -->
+            <ui:VisualElement style="flex-direction: row; align-items: center;">
+                <ui:VisualElement style="width: 40px; height: 40px; border-radius: 9999px; border-width: 1px; border-color: rgba(194,193,255,0.2); background-color: rgba(194,193,255,0.1); margin-right: 24px;" />
+                <ui:VisualElement>
+                    <ui:Label text="USER_01" class="text-label-caps" style="color: #c2c1ff;" />
+                    <ui:Label name="lbl-user-integrity" text="Integrity: 88%" style="font-size: 10px; color: #464554; letter-spacing: 4px; text-transform: uppercase;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Main content area (right of side nav) -->
+        <ui:VisualElement name="main-content" class="main-content">
+            <!-- Page title -->
+            <ui:Label text="ESTADO DEL SISTEMA COGNITIVO" class="text-headline-xl" style="color: #c2c1ff; letter-spacing: 9.6px; margin-bottom: 12px;" />
+            <ui:VisualElement class="accent-line" style="margin-bottom: 48px;" />
+            
+            <!-- Content grid: stats left, mental map right -->
+            <ui:VisualElement style="flex-direction: row; flex-grow: 1;">
+                
+                <!-- Stats column (left) -->
+                <ui:VisualElement style="width: 33%; padding-right: 48px; flex-direction: column;">
+                    <ui:Label text="STAT_ANALYSIS" class="text-label-caps" style="color: #bec6e0; margin-bottom: 24px;" />
+                    
+                    <!-- Stability -->
+                    <ui:VisualElement style="margin-bottom: 48px;">
+                        <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-bottom: 4px;">
+                            <ui:Label text="STABILITY" class="hud-stat-label" />
+                            <ui:Label name="lbl-stat-stability-val" text="0.20" class="hud-stat-value" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="hud-bar">
+                            <ui:VisualElement name="bar-stat-stability-fill" class="hud-bar-fill" style="width: 20%;" />
+                        </ui:VisualElement>
+                        <ui:Label name="lbl-stat-stability-desc" text="Neural cohesion initializing..." class="hud-stat-desc" style="margin-top: 4px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Echo Coherence -->
+                    <ui:VisualElement style="margin-bottom: 48px;">
+                        <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-bottom: 4px;">
+                            <ui:Label text="ECHO COHERENCE" class="hud-stat-label" />
+                            <ui:Label name="lbl-stat-coherence-val" text="0.10" class="hud-stat-value" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="hud-bar">
+                            <ui:VisualElement name="bar-stat-coherence-fill" class="hud-bar-fill" style="width: 10%;" />
+                        </ui:VisualElement>
+                        <ui:Label name="lbl-stat-coherence-desc" text="Fragment resonance is currently unstable." class="hud-stat-desc" style="margin-top: 4px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Narrative Progress -->
+                    <ui:VisualElement style="margin-bottom: 48px;">
+                        <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-bottom: 4px;">
+                            <ui:Label text="NARRATIVE PROGRESS" class="hud-stat-label" />
+                            <ui:Label name="lbl-stat-progress-val" text="0.00" class="hud-stat-value" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="hud-bar">
+                            <ui:VisualElement name="bar-stat-progress-fill" class="hud-bar-fill" style="width: 0%;" />
+                        </ui:VisualElement>
+                        <ui:Label name="lbl-stat-progress-desc" text="Deep memory nodes still inaccessible." class="hud-stat-desc" style="margin-top: 4px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Active Protocol card -->
+                    <ui:VisualElement class="glass-panel" style="padding: 24px; border-left-width: 2px; border-left-color: #c2c1ff;">
+                        <ui:Label text="ACTIVE_PROTOCOL" class="text-label-caps" style="color: #c2c1ff; margin-bottom: 12px;" />
+                        <ui:Label name="lbl-protocol-desc" text="The system is monitoring fragment sync. Ensure all floating memories are anchored." class="text-body-sm" style="color: #c7c4d6;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                
+                <!-- Mental map (right) — Interactive level selector -->
+                <ui:VisualElement class="glass-panel" style="flex-grow: 1; padding: 24px; position: relative;">
+                    <!-- Map header -->
+                    <ui:VisualElement style="position: absolute; top: 24px; right: 24px; align-items: flex-end;">
+                        <ui:Label text="COORD_SYSTEM: ALPHA_VOID" class="text-label-caps" style="color: #464554;" />
+                        <ui:Label text="SELECT A MEMORY FRAGMENT..." class="text-body-sm" style="color: #918fa0; font-size: 10px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Central hub node -->
+                    <ui:VisualElement style="position: absolute; left: 50%; top: 50%; margin-left: -24px; margin-top: -24px; width: 48px; height: 48px; border-radius: 9999px; border-width: 1px; border-color: #c2c1ff; align-items: center; justify-content: center; background-color: rgba(12,19,36,0.5);">
+                        <ui:Label text="◆" style="font-size: 20px; color: #c2c1ff;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 01 Node (top-left) -->
+                    <ui:VisualElement style="position: absolute; top: 15%; left: 20%; align-items: center;">
+                        <ui:Button name="btn-level-01" text="01" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-01" text="PRIMER RASTRO" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 02 Node (top-center) -->
+                    <ui:VisualElement style="position: absolute; top: 10%; left: 48%; align-items: center;">
+                        <ui:Button name="btn-level-02" text="02" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-02" text="CAMINO COMPARTIDO" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 03 Node (top-right) -->
+                    <ui:VisualElement style="position: absolute; top: 20%; right: 15%; align-items: center;">
+                        <ui:Button name="btn-level-03" text="03" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-03" text="DOS DECISIONES" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 04 Node (bottom-left) -->
+                    <ui:VisualElement style="position: absolute; bottom: 25%; left: 18%; align-items: center;">
+                        <ui:Button name="btn-level-04" text="04" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-04" text="ORDEN DE LECTURA" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 05 Node (bottom-center) -->
+                    <ui:VisualElement style="position: absolute; bottom: 18%; left: 45%; align-items: center;">
+                        <ui:Button name="btn-level-05" text="05" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-05" text="CADENA ESTABLE" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Level 06 Node (bottom-right) -->
+                    <ui:VisualElement style="position: absolute; bottom: 28%; right: 12%; align-items: center;">
+                        <ui:Button name="btn-level-06" text="06" class="level-button" style="width: 48px; height: 48px; font-size: 16px; rotate: 45deg;" />
+                        <ui:Label name="lbl-level-06" text="NUCLEO" class="text-label-caps" style="font-size: 9px; color: #918fa0; margin-top: 8px;" />
+                    </ui:VisualElement>
+                    
+                    <!-- Connecting lines (decorative) -->
+                    <ui:VisualElement style="position: absolute; left: 30%; top: 35%; width: 40%; height: 1px;" class="line-h" />
+                    <ui:VisualElement style="position: absolute; left: 50%; top: 25%; width: 1px; height: 50%;" class="line-v" />
+                    <ui:VisualElement style="position: absolute; left: 25%; top: 30%; width: 1px; height: 40%;" class="line-v" />
+                    <ui:VisualElement style="position: absolute; right: 20%; top: 35%; width: 1px; height: 35%;" class="line-v" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- ============================================== -->
+        <!-- BENTO GRID SETTINGS PANEL (hidden overlay)    -->
+        <!-- ============================================== -->
+        <ui:VisualElement name="settings-panel" class="hidden" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center;">
+            <ui:VisualElement class="overlay-dark" />
+            
+            <ui:VisualElement style="width: 80%; max-width: 960px; max-height: 85%; flex-direction: column;">
+                <!-- Title -->
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <ui:VisualElement>
+                        <ui:Label text="SYSTEM CALIBRATION" class="text-headline-md" style="color: #c2c1ff; letter-spacing: 4.8px;" />
+                        <ui:Label text="ECHOES OF THE MIND — ADJUSTMENT PROTOCOL" class="text-label-caps" style="color: #464554; opacity: 0.7; margin-top: 4px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="accent-line" style="margin-bottom: 24px;" />
+                
+                <!-- Bento Grid -->
+                <ui:ScrollView class="settings-scroll-container">
+                    <ui:VisualElement class="bento-grid" style="flex-direction: row; flex-wrap: wrap;">
+                    
+                    <!-- CELL 1: AUDIO LOGIC -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-right: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="AUDIO LOGIC" class="bento-cell-title" />
+                            <ui:Label text="🔊" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Master Volume" class="setting-label" />
+                                <ui:Label name="lbl-master-val" text="84%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="sld-master" low-value="0" high-value="1" value="0.84" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Music Volume" class="setting-label" />
+                                <ui:Label name="lbl-music-val" text="60%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="sld-music" low-value="0" high-value="1" value="0.6" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="SFX Volume" class="setting-label" />
+                                <ui:Label name="lbl-sfx-val" text="72%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="sld-sfx" low-value="0" high-value="1" value="0.72" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 2: VISUAL ARRAY -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-left: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="VISUAL ARRAY" class="bento-cell-title" />
+                            <ui:Label text="🖥" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="resolution-row">
+                            <ui:Label text="RESOLUTION" class="setting-label" />
+                            <ui:DropdownField name="ResolutionDropdown" style="width: 200px;" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="toggle-row">
+                            <ui:Label text="FULLSCREEN" class="setting-label" />
+                            <ui:Toggle name="FullscreenToggle" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="toggle-row">
+                            <ui:Label text="V-SYNC" class="setting-label" />
+                            <ui:Toggle name="VsyncToggle" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="resolution-row">
+                            <ui:Label text="UI SCALE" class="setting-label" />
+                            <ui:DropdownField name="ScaleDropdown" style="width: 200px;" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="setting-row" style="margin-top: 8px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Fog Density" class="setting-label" />
+                                <ui:Label name="lbl-fog-val" text="0.035" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="sld-fog" low-value="0" high-value="0.1" value="0.035" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 3: NEURAL INTERFACE -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-right: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="NEURAL INTERFACE" class="bento-cell-title" />
+                            <ui:Label text="🎯" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <ui:Label text="SENSITIVITY PRESET" class="text-label-caps" style="color: #918fa0; margin-bottom: 8px;" />
+                        <ui:VisualElement class="preset-button-row">
+                            <ui:Button name="btn-sens-low" text="LOW" class="preset-button" />
+                            <ui:Button name="btn-sens-med" text="MEDIUM" class="preset-button preset-button--active" />
+                            <ui:Button name="btn-sens-high" text="HIGH" class="preset-button" />
+                        </ui:VisualElement>
+                        <ui:Label name="lbl-sens-val" text="Medium" class="setting-value" style="margin-top: 12px; -unity-text-align: middle-center;" />
+                        
+                        <ui:VisualElement class="setting-row" style="margin-top: 16px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Camera Sensitivity" class="setting-label" />
+                                <ui:Label name="lbl-cam-sens-val" text="1.0" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="SensitivitySlider" low-value="0.1" high-value="5" value="1" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="setting-row" style="margin-top: 16px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Echo Opacity" class="setting-label" />
+                                <ui:Label name="lbl-echo-val" text="60%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="sld-echo" low-value="0" high-value="1" value="0.6" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 4: CALIBRATION STATUS -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-left: 2%; margin-bottom: 16px; align-items: center; justify-content: center;">
+                        <ui:VisualElement class="bento-cell-header" style="width: 100%;">
+                            <ui:Label text="CALIBRATION STATUS" class="bento-cell-title" />
+                            <ui:Label text="◆" class="bento-cell-icon" style="color: #c2c1ff;" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement style="flex-grow: 1; align-items: center; justify-content: center;">
+                            <ui:Label text="SYNC" class="calibration-status-value" />
+                            <ui:Label text="SYSTEM_NOMINAL" class="calibration-status-label" style="margin-top: 8px;" />
+                            <ui:VisualElement style="width: 64px; height: 1px; background-color: rgba(194,193,255,0.3); margin-top: 16px; margin-bottom: 16px;" />
+                            <ui:Label text="LATENCY: 0.2ms" class="text-body-sm" style="color: #918fa0; font-size: 10px;" />
+                            <ui:Label text="FRAME_SYNC: ACTIVE" class="text-body-sm" style="color: #918fa0; font-size: 10px; margin-top: 4px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                </ui:ScrollView>
+                
+                <!-- Footer Actions -->
+                <ui:VisualElement class="calibration-footer">
+                    <ui:Button name="btn-restore-defaults" text="RESTORE DEFAULTS" class="calibration-btn-ghost" />
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:Button name="btn-settings-back" text="DISCARD" class="calibration-btn-outline" style="margin-right: 12px;" />
+                        <ui:Button name="btn-settings-apply" text="APPLY" class="calibration-btn-primary" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Decorative floating lines top-right -->
+        <ui:VisualElement style="position: absolute; top: 64px; right: 64px; align-items: flex-end; flex-direction: column;">
+            <ui:VisualElement style="width: 128px; height: 1px; background-color: #c2c1ff;" />
+            <ui:VisualElement style="width: 96px; height: 1px; background-color: #c2c1ff; margin-top: 4px;" />
+            <ui:VisualElement style="width: 160px; height: 1px; background-color: rgba(194,193,255,0.4); margin-top: 4px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

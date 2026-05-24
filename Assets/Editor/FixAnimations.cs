@@ -20,6 +20,7 @@ public class FixAnimations
             if (importer != null)
             {
                 importer.animationType = ModelImporterAnimationType.Human;
+                importer.globalScale = 1f;
                 importer.SaveAndReimport();
                 Debug.Log("Reimported to Humanoid: " + p);
             }

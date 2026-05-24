@@ -21,15 +21,7 @@ public class TutorialTrigger : MonoBehaviour
     void Awake()
     {
         var col = GetComponent<Collider>();
-        col.isTrigger = true;
-
-        // Requiere Rigidbody kinematic para detectar CharacterController
-        if (GetComponent<Rigidbody>() == null)
-        {
-            var rb = gameObject.AddComponent<Rigidbody>();
-            rb.isKinematic = true;
-            rb.useGravity = false;
-        }
+        if (col != null) col.isTrigger = true;
     }
 
     void OnTriggerEnter(Collider other)

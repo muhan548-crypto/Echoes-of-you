@@ -130,8 +130,40 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1519133808649133812}
+  - {fileID: 1161012693219326816}
   m_Father: {fileID: 400000}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2848821227079237674
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1161012693219326816}
+  m_Layer: 0
+  m_Name: EchoScaler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1161012693219326816
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2848821227079237674}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1519133808649133812}
+  m_Father: {fileID: 400001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1341990616567658783
 PrefabInstance:
@@ -139,20 +171,8 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 400001}
+    m_TransformParent: {fileID: 1161012693219326816}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.25
-      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -199,8 +219,12 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: be9a965487fa400449864f1c22c3e7df, type: 2}
     - target: {fileID: 919132149155446097, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
       propertyPath: m_Name
-      value: EchoModel
+      value: Model
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: c6f08cca9f00aa040ab00d410697e152, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: eeab5e21720dedd48bb135f9df6cefa8, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

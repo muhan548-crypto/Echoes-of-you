@@ -1,167 +1,184 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 /// <summary>
-/// Menú principal minimalista con acceso al hub 3D.
+/// Controlador del menú principal. Busca botones por nombre y los conecta en runtime.
 /// </summary>
 public class MainMenu : MonoBehaviour
 {
-    [Header("Palette")]
-    [SerializeField] Color backgroundColor = new Color(0.04f, 0.06f, 0.08f, 1f);
-    [SerializeField] Color titleColor = new Color(0.85f, 0.95f, 1f, 1f);
-    [SerializeField] Color accentColor = new Color(0.16f, 0.85f, 1f, 1f);
-    [SerializeField] Color secondaryColor = new Color(0.62f, 0.72f, 0.78f, 1f);
-    [SerializeField] Color buttonHoverColor = new Color(0.16f, 0.85f, 1f, 0.2f);
+    public CanvasGroup mainPanel;
+    public CanvasGroup levelSelectPanel;
+    public CanvasGroup settingsPanel;
 
-    [Header("Scenes")]
-    [SerializeField] string hubSceneName = "Level_01";
-
-    Texture2D _pixel;
-    GUIStyle _titleStyle;
-    GUIStyle _subtitleStyle;
-    GUIStyle _buttonStyle;
-    GUIStyle _buttonHoverStyle;
-    GUIStyle _smallStyle;
-    float _fadeIn;
-    bool _stylesReady;
-
-    void Awake()
+    void Start()
     {
-        _pixel = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-        _pixel.SetPixel(0, 0, Color.white);
-        _pixel.Apply();
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         Time.timeScale = 1f;
+
+        WireButtons();
+        ShowMain();
     }
 
-    void Update()
+    void WireButtons()
     {
-        _fadeIn = Mathf.MoveTowards(_fadeIn, 1f, Time.unscaledDeltaTime * 0.9f);
-    }
-
-    void InitStyles()
-    {
-        if (_stylesReady)
-            return;
-
-        _stylesReady = true;
-
-        _titleStyle = new GUIStyle(GUI.skin.label)
+        // Wire all buttons by name
+        Button[] allButtons = GetComponentsInChildren<Button>(true);
+        foreach (Button btn in allButtons)
         {
-            fontSize = 62,
-            alignment = TextAnchor.MiddleCenter,
-            fontStyle = FontStyle.Bold,
-            normal = { textColor = titleColor }
-        };
+            string btnName = btn.gameObject.name;
+            btn.onClick.RemoveAllListeners();
 
-        _subtitleStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 18,
-            alignment = TextAnchor.MiddleCenter,
-            wordWrap = true,
-            normal = { textColor = secondaryColor }
-        };
-
-        _buttonStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 24,
-            alignment = TextAnchor.MiddleCenter,
-            fontStyle = FontStyle.Bold,
-            normal = { textColor = titleColor }
-        };
-
-        _buttonHoverStyle = new GUIStyle(_buttonStyle)
-        {
-            normal = { textColor = accentColor }
-        };
-
-        _smallStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = 15,
-            alignment = TextAnchor.MiddleCenter,
-            normal = { textColor = secondaryColor }
-        };
-    }
-
-    void OnDestroy()
-    {
-        if (_pixel != null)
-            Destroy(_pixel);
-    }
-
-    void OnGUI()
-    {
-        if (_pixel == null)
-            return;
-
-        InitStyles();
-        DrawRect(new Rect(0, 0, Screen.width, Screen.height), backgroundColor);
-
-        float alpha = _fadeIn;
-        float centerX = Screen.width * 0.5f;
-        float centerY = Screen.height * 0.5f;
-
-        Color old = GUI.color;
-        GUI.color = new Color(1f, 1f, 1f, alpha);
-
-        GUI.Label(new Rect(0, centerY - 210f, Screen.width, 72f), "ECHOES OF YOU", _titleStyle);
-        GUI.Label(
-            new Rect(centerX - 260f, centerY - 130f, 520f, 48f),
-            "Tus decisiones construyen quien eres. Aprende a usarlas para volver al centro.",
-            _subtitleStyle);
-
-        DrawRect(new Rect(centerX - 110f, centerY - 72f, 220f, 2f), new Color(accentColor.r, accentColor.g, accentColor.b, 0.45f * alpha));
-
-        string progressText = $"Memorias restauradas: {GameProgress.GetCompletedCount()}/{GameProgress.TotalLevels}";
-        GUI.Label(new Rect(centerX - 180f, centerY - 38f, 360f, 24f), progressText, _smallStyle);
-
-        float buttonWidth = 300f;
-        float buttonHeight = 48f;
-        float buttonX = centerX - buttonWidth * 0.5f;
-
-        if (DrawButton(new Rect(buttonX, centerY + 8f, buttonWidth, buttonHeight), "JUGAR"))
-            SceneManager.LoadScene(hubSceneName);
-
-        if (DrawButton(new Rect(buttonX, centerY + 64f, buttonWidth, buttonHeight), "SELECCION DE NIVELES"))
-            SceneManager.LoadScene(hubSceneName);
-
-        if (DrawButton(new Rect(buttonX, centerY + 120f, buttonWidth, buttonHeight), "REINICIAR PROGRESO"))
-            GameProgress.ResetProgress();
-
-        if (DrawButton(new Rect(buttonX, centerY + 176f, buttonWidth, buttonHeight), "SALIR"))
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
+            switch (btnName)
+            {
+                case "Btn_Play":
+                    btn.onClick.AddListener(PlayGame);
+                    break;
+                case "Btn_LevelSelect":
+                    btn.onClick.AddListener(ShowLevelSelect);
+                    break;
+                case "Btn_Settings":
+                    btn.onClick.AddListener(ShowSettings);
+                    break;
+                case "Btn_Exit":
+                    btn.onClick.AddListener(QuitGame);
+                    break;
+                case "Btn_Back":
+                    btn.onClick.AddListener(ShowMain);
+                    break;
+                case "Btn_Level01":
+                    btn.onClick.AddListener(() => LoadLevel("Level_01"));
+                    break;
+                case "Btn_Level02":
+                    btn.onClick.AddListener(() => LoadLevel("Level_02"));
+                    break;
+                case "Btn_Level03":
+                    btn.onClick.AddListener(() => LoadLevel("Level_03"));
+                    break;
+                case "Btn_Level04":
+                    btn.onClick.AddListener(() => LoadLevel("Level_04"));
+                    break;
+                case "Btn_Level05":
+                    btn.onClick.AddListener(() => LoadLevel("Level_05"));
+                    break;
+                case "Btn_Level06":
+                    btn.onClick.AddListener(() => LoadLevel("Level_06"));
+                    break;
+            }
         }
 
-        GUI.Label(new Rect(0, Screen.height - 40f, Screen.width, 22f), "Un puzzle sobre memoria, identidad y aprendizaje.", _smallStyle);
-        GUI.color = old;
+        // Wire settings if they exist
+        Dropdown resDrop = FindComponentByName<Dropdown>("ResolutionDropdown");
+        Toggle fsTog = FindComponentByName<Toggle>("FullscreenToggle");
+        Toggle vsTog = FindComponentByName<Toggle>("VsyncToggle");
+        Slider volSld = FindComponentByName<Slider>("VolumeSlider");
+        Slider sensSld = FindComponentByName<Slider>("SensitivitySlider");
+
+        if (resDrop != null && fsTog != null && vsTog != null && volSld != null && sensSld != null)
+            InitializeSettings(resDrop, fsTog, vsTog, volSld, sensSld);
     }
 
-    bool DrawButton(Rect rect, string text)
+    T FindComponentByName<T>(string objName) where T : Component
     {
-        Vector2 mouse = Event.current.mousePosition;
-        bool hover = rect.Contains(mouse);
-
-        DrawRect(rect, new Color(0.02f, 0.05f, 0.08f, hover ? 0.88f : 0.76f));
-        if (hover)
-            DrawRect(new Rect(rect.x, rect.y, rect.width, rect.height), buttonHoverColor);
-
-        DrawRect(new Rect(rect.x, rect.y, rect.width, 2f), new Color(accentColor.r, accentColor.g, accentColor.b, hover ? 0.65f : 0.18f));
-        GUI.Label(rect, text, hover ? _buttonHoverStyle : _buttonStyle);
-        return GUI.Button(rect, GUIContent.none, GUIStyle.none);
+        T[] all = GetComponentsInChildren<T>(true);
+        foreach (T c in all)
+        {
+            if (c.gameObject.name == objName)
+                return c;
+        }
+        return null;
     }
 
-    void DrawRect(Rect rect, Color color)
+    public void ShowMain() { SwitchTo(mainPanel); }
+    public void ShowLevelSelect() { SwitchTo(levelSelectPanel); }
+    public void ShowSettings() { SwitchTo(settingsPanel); }
+
+    void SwitchTo(CanvasGroup target)
     {
-        Color old = GUI.color;
-        GUI.color = color;
-        GUI.DrawTexture(rect, _pixel);
-        GUI.color = old;
+        if (mainPanel != null) mainPanel.gameObject.SetActive(target == mainPanel);
+        if (levelSelectPanel != null) levelSelectPanel.gameObject.SetActive(target == levelSelectPanel);
+        if (settingsPanel != null) settingsPanel.gameObject.SetActive(target == settingsPanel);
     }
+
+    public void PlayGame()
+    {
+        LoadLevel("Level_01");
+    }
+
+    public void LoadLevel(string levelName)
+    {
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadScene(levelName);
+        }
+        else
+        {
+            PostProcessingSetup.PrepareForSceneReload();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(levelName);
+        }
+    }
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    // --- SETTINGS ---
+    List<Resolution> _filteredResolutions;
+
+    public void InitializeSettings(Dropdown resDropdown, Toggle fullscreenToggle, Toggle vsyncToggle, Slider masterSlider, Slider sensSlider)
+    {
+        Resolution[] resolutions = Screen.resolutions;
+        _filteredResolutions = new List<Resolution>();
+        resDropdown.ClearOptions();
+
+        List<string> options = new List<string>();
+        int currentResIndex = 0;
+
+        for (int i = 0; i < resolutions.Length; i++)
+        {
+            _filteredResolutions.Add(resolutions[i]);
+            string option = resolutions[i].width + " x " + resolutions[i].height;
+            options.Add(option);
+
+            if (resolutions[i].width == Screen.currentResolution.width &&
+                resolutions[i].height == Screen.currentResolution.height)
+                currentResIndex = i;
+        }
+        resDropdown.AddOptions(options);
+        resDropdown.value = currentResIndex;
+        resDropdown.RefreshShownValue();
+        resDropdown.onValueChanged.AddListener(SetResolution);
+
+        fullscreenToggle.isOn = Screen.fullScreen;
+        fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
+
+        vsyncToggle.isOn = QualitySettings.vSyncCount > 0;
+        vsyncToggle.onValueChanged.AddListener(SetVSync);
+
+        masterSlider.value = AudioListener.volume;
+        masterSlider.onValueChanged.AddListener(SetMasterVolume);
+
+        sensSlider.value = PlayerPrefs.GetFloat("CameraSensitivity", 1f);
+        sensSlider.onValueChanged.AddListener(SetCameraSensitivity);
+    }
+
+    public void SetResolution(int resIndex)
+    {
+        if (_filteredResolutions != null && resIndex >= 0 && resIndex < _filteredResolutions.Count)
+        {
+            Resolution res = _filteredResolutions[resIndex];
+            Screen.SetResolution(res.width, res.height, Screen.fullScreen);
+        }
+    }
+
+    public void SetFullscreen(bool isFullscreen) { Screen.fullScreen = isFullscreen; }
+    public void SetVSync(bool isVsync) { QualitySettings.vSyncCount = isVsync ? 1 : 0; }
+    public void SetMasterVolume(float vol) { AudioListener.volume = vol; }
+    public void SetCameraSensitivity(float sens) { PlayerPrefs.SetFloat("CameraSensitivity", sens); PlayerPrefs.Save(); }
 }

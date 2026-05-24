@@ -267,84 +267,7 @@ public static class EchoesLevelBuilder
     // ================================================================
     static void CreateAnimatorController()
     {
-        string path = PREFAB_ROOT + "/PlayerAnimController.controller";
-        if (File.Exists(path))
-        {
-            // Do not delete! The user will manually configure the Blend Trees in this controller.
-            return;
-        }
-
-        var controller = UnityEditor.Animations.AnimatorController.CreateAnimatorControllerAtPath(path);
-        controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
-        controller.AddParameter("VelocityX", AnimatorControllerParameterType.Float);
-        controller.AddParameter("VelocityZ", AnimatorControllerParameterType.Float);
-        controller.AddParameter("Grounded", AnimatorControllerParameterType.Bool);
-        controller.AddParameter("Falling", AnimatorControllerParameterType.Bool);
-        controller.AddParameter("Jump", AnimatorControllerParameterType.Trigger);
-        controller.AddParameter("IsRecording", AnimatorControllerParameterType.Bool);
-        controller.AddParameter("IsEchoPlayback", AnimatorControllerParameterType.Bool);
-
-        var rootStateMachine = controller.layers[0].stateMachine;
-
-        // Get clips
-        AnimationClip idleClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/idle.fbx");
-        AnimationClip walkClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/walking.fbx");
-        AnimationClip runClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/running.fbx");
-        AnimationClip jumpClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/jump.fbx");
-        AnimationClip leftStrafeWalkClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/left strafe walking.fbx");
-        AnimationClip rightStrafeWalkClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/right strafe walking.fbx");
-        AnimationClip leftStrafeClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/left strafe.fbx");
-        AnimationClip rightStrafeClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/3D Models/Animaciones/Locomotion/right strafe.fbx");
-
-        // Create States
-        var moveState = rootStateMachine.AddState("Move");
-        
-        // Create BlendTree for movement
-        var blendTree = new UnityEditor.Animations.BlendTree();
-        blendTree.name = "Locomotion";
-        blendTree.blendType = UnityEditor.Animations.BlendTreeType.SimpleDirectional2D;
-        blendTree.blendParameter = "VelocityX";
-        blendTree.blendParameterY = "VelocityZ";
-        
-        blendTree.AddChild(idleClip, new Vector2(0f, 0f));
-        blendTree.AddChild(walkClip, new Vector2(0f, 2f));
-        blendTree.AddChild(runClip, new Vector2(0f, 6f));
-        blendTree.AddChild(leftStrafeWalkClip, new Vector2(-2f, 0f));
-        blendTree.AddChild(rightStrafeWalkClip, new Vector2(2f, 0f));
-        blendTree.AddChild(leftStrafeClip, new Vector2(-6f, 0f));
-        blendTree.AddChild(rightStrafeClip, new Vector2(6f, 0f));
-
-        moveState.motion = blendTree;
-        rootStateMachine.defaultState = moveState;
-
-        var jumpState = rootStateMachine.AddState("Jump");
-        jumpState.motion = jumpClip;
-
-        var fallState = rootStateMachine.AddState("Fall");
-        // Use jump clip or a fall specific one if available, usually the end of jump
-        fallState.motion = jumpClip; 
-
-        // Transitions
-        var anyToJump = rootStateMachine.AddAnyStateTransition(jumpState);
-        anyToJump.AddCondition(UnityEditor.Animations.AnimatorConditionMode.If, 0, "Jump");
-        
-        var jumpToFall = jumpState.AddTransition(fallState);
-        jumpToFall.hasExitTime = true;
-        jumpToFall.exitTime = 0.5f;
-        jumpToFall.AddCondition(UnityEditor.Animations.AnimatorConditionMode.IfNot, 0, "Grounded");
-
-        var fallToMove = fallState.AddTransition(moveState);
-        fallToMove.AddCondition(UnityEditor.Animations.AnimatorConditionMode.If, 0, "Grounded");
-
-        var jumpToMove = jumpState.AddTransition(moveState);
-        jumpToMove.AddCondition(UnityEditor.Animations.AnimatorConditionMode.If, 0, "Grounded");
-
-        // Layers for Recording/Playback (simplification for Jam: use parameters to drive effects)
-        // In a real scenario we might use an Override layer, but here we just ensure the states exist.
-
-        AssetDatabase.AddObjectToAsset(blendTree, controller);
-
-        Debug.Log("[Echoes] Created AnimatorController.");
+        SetupPlayerAnimator.Setup();
     }
 
     // ================================================================
@@ -530,6 +453,13 @@ public static class EchoesLevelBuilder
         var exitComp = exit.AddComponent<LevelExit>();
         exitComp.loadNextBuildIndex = true;
 
+        SpawnLevelRuntime(mechParent.transform, "Deja un eco en la placa y cruza la puerta.", "Activa la placa con tu eco para abrir el paso.", "Primero recuerdas.");
+        SpawnPuzzleIntent(mechParent.transform, 1, 2, true, false, false, 4f, "Introduccion: eco sostiene la placa y el objetivo queda visible al frente.");
+        GoalTrigger l1Plate = CreateGoalTrigger("Goal_Plate", mechParent.transform, plate, null, true, false);
+        GoalTrigger l1Door = CreateGoalTrigger("Goal_Door", mechParent.transform, null, dc, false, true);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l1Plate, l1Door }, "Activa la memoria con el eco.", "Salida abierta.", "Primero recuerdas.", 2);
+        SpawnGuideBeacon("GoalLight_L1", new Vector3(0f, 3.4f, 21f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
+
         SpawnPlayer(new Vector3(0, 1.5f, 0));
         SpawnCamera();
         SpawnHUD();
@@ -589,11 +519,21 @@ public static class EchoesLevelBuilder
 
         var exit1 = MakeCube("LevelExit", new Vector3(-4, 0.5f, 18), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
         exit1.GetComponent<BoxCollider>().isTrigger = true;
-        exit1.AddComponent<LevelExit>().loadNextBuildIndex = true;
+        var exitComp1 = exit1.AddComponent<LevelExit>();
+        exitComp1.loadNextBuildIndex = true;
 
         var exit2 = MakeCube("LevelExit", new Vector3(4, 0.5f, 18), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
         exit2.GetComponent<BoxCollider>().isTrigger = true;
-        exit2.AddComponent<LevelExit>().loadNextBuildIndex = true;
+        var exitComp2 = exit2.AddComponent<LevelExit>();
+        exitComp2.loadNextBuildIndex = true;
+
+        SpawnLevelRuntime(mechParent.transform, "Activa un camino y usa el eco para sostenerlo.", "Observa las dos rutas y elige cual mantiene tu eco.", "Luego pruebas.");
+        SpawnPuzzleIntent(mechParent.transform, 2, 2, true, true, false, 6f, "Nivel de lectura: dos rutas visibles, el eco sostiene la opcion elegida.");
+        GoalTrigger l2A = CreateGoalTrigger("Goal_Plate_A", mechParent.transform, plateA, null, true, false);
+        GoalTrigger l2B = CreateGoalTrigger("Goal_Plate_B", mechParent.transform, plateB, null, true, false);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp1, exitComp2 }, new[] { l2A, l2B }, "Activa una ruta y llega a la salida.", "Ruta sincronizada.", "Luego pruebas.", 1);
+        SpawnGuideBeacon("GoalLight_L2A", new Vector3(-4f, 3.4f, 18f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
+        SpawnGuideBeacon("GoalLight_L2B", new Vector3(4f, 3.4f, 18f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
 
         SpawnPlayer(new Vector3(0, 1.5f, 0));
         SpawnCamera();
@@ -638,7 +578,16 @@ public static class EchoesLevelBuilder
 
         var exit = MakeCube("LevelExit", new Vector3(0, 0.5f, 20), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
         exit.GetComponent<BoxCollider>().isTrigger = true;
-        exit.AddComponent<LevelExit>().loadNextBuildIndex = true;
+        var exitComp = exit.AddComponent<LevelExit>();
+        exitComp.loadNextBuildIndex = true;
+
+        SpawnLevelRuntime(mechParent.transform, "Activa ambas placas y cruza cuando la puerta ceda.", "Necesitas dos acciones coordinadas para abrir el paso.", "Dos decisiones se sostienen.");
+        SpawnPuzzleIntent(mechParent.transform, 2, 3, true, true, true, 8f, "AND gate: el eco mantiene una placa mientras avanzas a la otra.");
+        GoalTrigger l3L = CreateGoalTrigger("Goal_Plate_Left", mechParent.transform, pL, null, true, false);
+        GoalTrigger l3R = CreateGoalTrigger("Goal_Plate_Right", mechParent.transform, pR, null, true, false);
+        GoalTrigger l3Door = CreateGoalTrigger("Goal_Door", mechParent.transform, null, dc, false, true);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l3L, l3R, l3Door }, "Coordina eco y avance para abrir la puerta.", "Paso completo.", "Dos decisiones se sostienen.", 3);
+        SpawnGuideBeacon("GoalLight_L3", new Vector3(0f, 3.6f, 20f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
 
         SpawnPlayer(new Vector3(0, 1.5f, 0));
         SpawnCamera();
@@ -678,8 +627,16 @@ public static class EchoesLevelBuilder
         mp.travelSpeed = 6f; // Faster to force the twist
 
         var exit = MakeCube("LevelExit", new Vector3(0, 0.5f, 20), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
-        exit.AddComponent<LevelExit>().loadNextBuildIndex = true;
+        var exitComp = exit.AddComponent<LevelExit>();
+        exitComp.loadNextBuildIndex = true;
         exit.GetComponent<BoxCollider>().isTrigger = true;
+
+        SpawnLevelRuntime(mechParent.transform, "Graba el recorrido y deja que el eco mueva el puente.", "El orden correcto es dejar el eco y correr al objetivo.", "El orden cambia el camino.");
+        SpawnPuzzleIntent(mechParent.transform, 1, 3, true, true, true, 10f, "Twist: el eco activa el puente mientras el jugador aprovecha el timing.");
+        GoalTrigger l4Plate = CreateGoalTrigger("Goal_Plate", mechParent.transform, plate, null, true, false);
+        GoalTrigger l4Bridge = CreateGoalTrigger("Goal_BridgeTravel", mechParent.transform, plate, null, true, false);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l4Plate, l4Bridge }, "Sincroniza el eco con el puente y cruza.", "Momento resuelto.", "El orden cambia el camino.", 1);
+        SpawnGuideBeacon("GoalLight_L4", new Vector3(0f, 3.6f, 20f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
 
         SpawnPlayer(new Vector3(0, 1.5f, -2));
         SpawnCamera();
@@ -737,7 +694,15 @@ public static class EchoesLevelBuilder
         mp2.travelSpeed = 8f;
 
         var exit = MakeCube("LevelExit", new Vector3(0, 0.5f, 26), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
-        exit.AddComponent<LevelExit>().loadNextBuildIndex = true;
+        var exitComp = exit.AddComponent<LevelExit>();
+        exitComp.loadNextBuildIndex = true;
+
+        SpawnLevelRuntime(mechParent.transform, "Usa el eco para encadenar dos puentes hasta la salida.", "Primero deja una accion sostenida, luego corre al segundo puente.", "La precision revela el patron.");
+        SpawnPuzzleIntent(mechParent.transform, 2, 4, true, true, true, 12f, "Encadenado: eco en puente 1, avance, activacion de puente 2 y salida.");
+        GoalTrigger l5P1 = CreateGoalTrigger("Goal_Plate_1", mechParent.transform, plate1, null, true, false);
+        GoalTrigger l5P2 = CreateGoalTrigger("Goal_Plate_2", mechParent.transform, plate2, null, true, false);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l5P1, l5P2 }, "Activa ambas memorias para abrir el camino final.", "Camino completo.", "La precision revela el patron.", 2);
+        SpawnGuideBeacon("GoalLight_L5", new Vector3(0f, 3.8f, 26f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f));
 
         SpawnPlayer(new Vector3(0, 1.5f, -2), 3);
         SpawnCamera();
@@ -784,9 +749,19 @@ public static class EchoesLevelBuilder
         dc1.plates = new PressurePlate[] { p1, p2, p3 };
 
         var exit = MakeCube("LevelExit", new Vector3(0, 0.5f, 24), new Vector3(2, 2, 0.3f), mechParent.transform, _matExit);
-        exit.AddComponent<LevelExit>().loadNextBuildIndex = false;
-        exit.GetComponent<LevelExit>().nextSceneName = "MainMenu";
+        var exitComp = exit.AddComponent<LevelExit>();
+        exitComp.loadNextBuildIndex = false;
+        exitComp.nextSceneName = "MainMenu";
         exit.GetComponent<BoxCollider>().isTrigger = true;
+
+        SpawnLevelRuntime(mechParent.transform, "Activa las tres placas y cruza la puerta final.", "Divide el recorrido con tus ecos antes de volver al centro.", "Tu identidad vuelve al centro.");
+        SpawnPuzzleIntent(mechParent.transform, 3, 5, true, true, true, 16f, "Final: tres placas separadas y puerta central acumulativa.");
+        GoalTrigger l6P1 = CreateGoalTrigger("Goal_Plate_Left", mechParent.transform, p1, null, true, false);
+        GoalTrigger l6P2 = CreateGoalTrigger("Goal_Plate_Right", mechParent.transform, p2, null, true, false);
+        GoalTrigger l6P3 = CreateGoalTrigger("Goal_Plate_Center", mechParent.transform, p3, null, true, false);
+        GoalTrigger l6Door = CreateGoalTrigger("Goal_Door", mechParent.transform, null, dc1, false, true);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l6P1, l6P2, l6P3, l6Door }, "Completa las tres memorias del nivel.", "Salida restaurada.", "Tu identidad vuelve al centro.", 4);
+        SpawnGuideBeacon("GoalLight_L6", new Vector3(0f, 4f, 24f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f), 7f, 10f);
 
         SpawnPlayer(new Vector3(0, 1.5f, -2), 3, 20f);
         SpawnCamera();
@@ -855,8 +830,18 @@ public static class EchoesLevelBuilder
 
         var exit = MakeCube("LevelExit", new Vector3(18f, 0.5f, 42f), new Vector3(2f, 2f, 0.3f), mechParent.transform, _matExit);
         exit.GetComponent<BoxCollider>().isTrigger = true;
-        exit.AddComponent<LevelExit>().loadNextBuildIndex = false;
-        exit.GetComponent<LevelExit>().nextSceneName = "MainMenu";
+        var exitComp = exit.AddComponent<LevelExit>();
+        exitComp.loadNextBuildIndex = false;
+        exitComp.nextSceneName = "MainMenu";
+
+        SpawnLevelRuntime(mechParent.transform, "Activa las tres memorias y usa gravedad + eco para llegar al santuario.", "La pared y el techo son parte del puzzle, no solo del recorrido.", "Tu identidad vuelve al centro.");
+        SpawnPuzzleIntent(mechParent.transform, 3, 6, true, true, true, 18f, "Trial modular: eco, timing y cambios de gravedad hasta la salida visible.");
+        GoalTrigger l7P1 = CreateGoalTrigger("Goal_EchoGallery", mechParent.transform, p1, null, true, false);
+        GoalTrigger l7P2 = CreateGoalTrigger("Goal_ArchiveWing", mechParent.transform, p2, null, true, false);
+        GoalTrigger l7P3 = CreateGoalTrigger("Goal_GravityAtrium", mechParent.transform, p3, null, true, false);
+        GoalTrigger l7Door = CreateGoalTrigger("Goal_FinalDoor", mechParent.transform, null, doorController, false, true);
+        SpawnLevelGoal(mechParent.transform, new[] { exitComp }, new[] { l7P1, l7P2, l7P3, l7Door }, "Restaura las tres memorias y regresa al centro.", "Santuario abierto.", "Tu identidad vuelve al centro.", 4);
+        SpawnGuideBeacon("GoalLight_L7", new Vector3(18f, 4.2f, 42f), mechParent.transform, new Color(1f, 0.82f, 0.42f, 1f), 7f, 11f);
 
         SpawnTutorialTrigger(
             "Tutorial_Gravity",
@@ -962,11 +947,12 @@ public static class EchoesLevelBuilder
             var instance = PrefabUtility.InstantiatePrefab(polyChar) as GameObject;
             instance.transform.SetParent(visual.transform, false);
             instance.name = "PlayerModel";
-            instance.transform.localScale = Vector3.one * 1.2f;
+            instance.transform.localScale = Vector3.one;
             
             // Add Animator component if it doesn't have one
             var anim = instance.GetComponent<Animator>();
             if (anim == null) anim = instance.AddComponent<Animator>();
+            anim.applyRootMotion = false;
             
             var animController = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>("Assets/Prefabs/PlayerAnimController.controller");
             if (animController != null) anim.runtimeAnimatorController = animController;
@@ -990,7 +976,7 @@ public static class EchoesLevelBuilder
 
         var focus = new GameObject("CameraFocus");
         focus.transform.SetParent(player.transform, false);
-        focus.transform.localPosition = new Vector3(0f, 1.45f, 0.15f);
+        focus.transform.localPosition = new Vector3(0f, 1.2f, 0.08f);
     }
 
     static void SpawnCamera()
@@ -1023,8 +1009,11 @@ public static class EchoesLevelBuilder
         // ThirdPersonCamera
         var tpc = camGO.GetComponent<ThirdPersonCamera>();
         if (tpc == null) tpc = camGO.AddComponent<ThirdPersonCamera>();
-        tpc.distance = 5f;
-        tpc.focusOffset = Vector3.zero;
+        tpc.distance = 4f;
+        tpc.focusOffset = new Vector3(0f, 1.2f, 0f);
+        tpc.baseFov = 54f;
+        tpc.minPitch = 8f;
+        tpc.maxPitch = 18f;
 
         if (camGO.GetComponent<CameraShake>() == null)
             camGO.AddComponent<CameraShake>();
@@ -1085,6 +1074,85 @@ public static class EchoesLevelBuilder
         SetPrivateField(trig, "hint", hint);
         SetPrivateField(trig, "displayDuration", duration);
         SetPrivateField(trig, "oneShot", true);
+    }
+
+    static void SpawnLevelRuntime(Transform parent, string objective, string intro, string completion)
+    {
+        var runtimeGO = new GameObject("LevelRuntimeController");
+        runtimeGO.transform.SetParent(parent, false);
+        var runtime = runtimeGO.AddComponent<LevelRuntimeController>();
+        SetPrivateField(runtime, "objectiveText", objective);
+        SetPrivateField(runtime, "introLine", intro);
+        SetPrivateField(runtime, "completionLine", completion);
+
+        var stateGO = new GameObject("GameStateController");
+        stateGO.transform.SetParent(parent, false);
+        stateGO.AddComponent<GameStateController>();
+    }
+
+    static void SpawnPuzzleIntent(Transform parent, int buttonCount, int requiredActions, bool requiresMovement, bool requiresTiming, bool multiStep, float echoDistance, string note)
+    {
+        var intentGO = new GameObject("PuzzleIntent");
+        intentGO.transform.SetParent(parent, false);
+        var intent = intentGO.AddComponent<PuzzleIntent>();
+        intent.buttonCount = buttonCount;
+        intent.requiredActions = requiredActions;
+        intent.requiresMovement = requiresMovement;
+        intent.requiresTiming = requiresTiming;
+        intent.isMultiStep = multiStep;
+        intent.minimumEchoDistance = echoDistance;
+        SetPrivateField(intent, "designNote", note);
+    }
+
+    static GoalTrigger CreateGoalTrigger(string name, Transform parent, PressurePlate plate, DoorController door, bool usePlate, bool useDoor)
+    {
+        var triggerGO = new GameObject(name);
+        triggerGO.transform.SetParent(parent, false);
+        var trigger = triggerGO.AddComponent<GoalTrigger>();
+        SetPrivateField(trigger, "pressurePlate", plate);
+        SetPrivateField(trigger, "doorController", door);
+        SetPrivateField(trigger, "usePlatePressedState", usePlate);
+        SetPrivateField(trigger, "useDoorOpenState", useDoor);
+        SetPrivateField(trigger, "displayName", name);
+        return trigger;
+    }
+
+    static void SpawnLevelGoal(Transform parent, LevelExit[] exits, GoalTrigger[] triggers, string objective, string readyPrompt, string completionToast, int requiredTriggerCount)
+    {
+        var goalGO = new GameObject("LevelGoal");
+        goalGO.transform.SetParent(parent, false);
+        var goal = goalGO.AddComponent<LevelGoal>();
+        SetPrivateField(goal, "objectiveText", objective);
+        SetPrivateField(goal, "readyPrompt", readyPrompt);
+        SetPrivateField(goal, "completionToast", completionToast);
+        SetPrivateField(goal, "requiredTriggerCount", requiredTriggerCount);
+
+        var so = new SerializedObject(goal);
+        var exitsProp = so.FindProperty("linkedExits");
+        exitsProp.arraySize = exits.Length;
+        for (int i = 0; i < exits.Length; i++)
+            exitsProp.GetArrayElementAtIndex(i).objectReferenceValue = exits[i];
+
+        var triggerProp = so.FindProperty("triggers");
+        triggerProp.arraySize = triggers.Length;
+        for (int i = 0; i < triggers.Length; i++)
+            triggerProp.GetArrayElementAtIndex(i).objectReferenceValue = triggers[i];
+
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SpawnGuideBeacon(string name, Vector3 position, Transform parent, Color color, float intensity = 6f, float range = 9f)
+    {
+        var beacon = new GameObject(name);
+        beacon.transform.SetParent(parent, false);
+        beacon.transform.position = position;
+
+        var light = beacon.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.color = color;
+        light.intensity = intensity;
+        light.range = range;
+        light.shadows = LightShadows.None;
     }
 
     // ================================================================

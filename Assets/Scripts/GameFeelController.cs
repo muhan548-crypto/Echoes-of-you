@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_POST_PROCESSING_STACK_V2
+using UnityEngine.Rendering.PostProcessing;
+#endif
 
 /// <summary>
 /// Sistema de Game Feel con jerarquía de intensidad.
@@ -38,6 +41,7 @@ public class GameFeelController : MonoBehaviour
     [Header("Camera Shake")]
     [SerializeField] CameraShake cameraShake;
     [SerializeField] ThirdPersonCamera gameplayCamera;
+    [SerializeField] FixedPuzzleCameraController fixedGameplayCamera;
     [SerializeField] float jumpShake = 0.08f;
     [SerializeField] float landingShake = 0.18f;
     [SerializeField] float gravityShake = 0.28f;
@@ -75,6 +79,12 @@ public class GameFeelController : MonoBehaviour
 
         if (gameplayCamera == null)
             gameplayCamera = GetComponent<ThirdPersonCamera>();
+        if (gameplayCamera == null)
+            gameplayCamera = ThirdPersonCamera.ResolveActive();
+        if (fixedGameplayCamera == null)
+            fixedGameplayCamera = GetComponent<FixedPuzzleCameraController>();
+        if (fixedGameplayCamera == null)
+            fixedGameplayCamera = FixedPuzzleCameraController.ResolveActive();
     }
 
     void Update()
@@ -95,6 +105,50 @@ public class GameFeelController : MonoBehaviour
         {
             _fovPulseTimer -= Time.unscaledDeltaTime;
         }
+
+        UpdatePostProcessingAndCameraEffects();
+    }
+
+    void UpdatePostProcessingAndCameraEffects()
+    {
+        EchoRecorder recorder = Object.FindAnyObjectByType<EchoRecorder>();
+        bool isRecording = recorder != null && recorder.IsRecording;
+        bool hasEchoes = recorder != null && recorder.EchoCount > 0;
+
+        float targetCA = 0.08f;
+        float targetLD = 0f;
+
+        if (isRecording)
+        {
+            // Aberración y distorsión tipo lente de seguridad / grabación
+            targetCA = 0.38f + Mathf.PingPong(Time.unscaledTime * 5f, 0.08f);
+            targetLD = -18f + Mathf.PingPong(Time.unscaledTime * 10f, 4f);
+        }
+        else if (hasEchoes)
+        {
+            // Aberración media y distorsión sutil que pulsa como un latido
+            targetCA = 0.22f + Mathf.Sin(Time.unscaledTime * 4.5f) * 0.04f;
+            targetLD = -6f + Mathf.Sin(Time.unscaledTime * 3f) * 3f;
+
+            // Pulso/respiración de cámara durante la presencia de ecos
+            float breatheFov = baseFOV + Mathf.Sin(Time.unscaledTime * 3f) * 1.5f;
+            RequestCameraPulse(breatheFov, 0.05f);
+        }
+
+#if UNITY_POST_PROCESSING_STACK_V2
+        PostProcessProfile profile = PostProcessingSetup.RuntimeProfile;
+        if (profile != null)
+        {
+            if (profile.TryGetSettings<ChromaticAberration>(out var ca))
+            {
+                ca.intensity.value = Mathf.MoveTowards(ca.intensity.value, targetCA, Time.unscaledDeltaTime * 1.5f);
+            }
+            if (profile.TryGetSettings<LensDistortion>(out var ld))
+            {
+                ld.intensity.value = Mathf.MoveTowards(ld.intensity.value, targetLD, Time.unscaledDeltaTime * 60f);
+            }
+        }
+#endif
     }
 
     void OnDestroy()
@@ -144,7 +198,7 @@ public class GameFeelController : MonoBehaviour
         SpawnEffect(puzzleSolvedEffectPrefab, position, Vector3.up);
         PlayClip3D(puzzleSolvedClip, position, defaultVolume * 1.2f);
         cameraShake?.AddShake(puzzleSolvedShake);
-        gameplayCamera?.RequestFovPulse(52f, 0.35f);
+        RequestCameraPulse(50f, 0.35f);
         ApplySlowMotion(slowMotionScale, 0.2f);
     }
 
@@ -154,7 +208,7 @@ public class GameFeelController : MonoBehaviour
         SpawnEffect(recordEffectPrefab, position, up);
         PlayClip3D(recordClip, position, defaultVolume * 0.9f);
         cameraShake?.AddShake(recordShake);
-        gameplayCamera?.RequestFovPulse(53f, 0.2f);
+        RequestCameraPulse(48f, 0.2f);
     }
 
     // Low: fin de grabación
@@ -169,7 +223,7 @@ public class GameFeelController : MonoBehaviour
         SpawnEffect(echoSpawnEffectPrefab, position, Vector3.up);
         PlayClip3D(echoSpawnClip, position, defaultVolume * 1.1f);
         cameraShake?.AddShake(echoSpawnShake * 1.5f);
-        gameplayCamera?.RequestFovPulse(55f, 0.25f);
+        RequestCameraPulse(47f, 0.25f);
         ApplySlowMotion(slowMotionScale, slowMotionDuration);
     }
 
@@ -211,6 +265,22 @@ public class GameFeelController : MonoBehaviour
         Time.timeScale = Mathf.Clamp(scale, 0.1f, 1f);
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
         _slowMotionTimer = duration;
+    }
+
+    void RequestCameraPulse(float targetFov, float holdSeconds)
+    {
+        if (gameplayCamera == null)
+            gameplayCamera = ThirdPersonCamera.ResolveActive();
+        if (fixedGameplayCamera == null)
+            fixedGameplayCamera = FixedPuzzleCameraController.ResolveActive();
+
+        if (gameplayCamera != null)
+        {
+            gameplayCamera.RequestFovPulse(targetFov, holdSeconds);
+            return;
+        }
+
+        fixedGameplayCamera?.RequestFovPulse(targetFov, holdSeconds);
     }
 
     // Partículas — spawn y auto-destroy

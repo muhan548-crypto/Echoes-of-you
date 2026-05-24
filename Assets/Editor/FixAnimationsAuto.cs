@@ -27,11 +27,26 @@ public class FixAnimationsAuto
         foreach (var p in paths)
         {
             var importer = AssetImporter.GetAtPath(p) as ModelImporter;
-            if (importer != null && importer.animationType != ModelImporterAnimationType.Human)
+            if (importer != null)
             {
-                importer.animationType = ModelImporterAnimationType.Human;
+                bool changed = false;
+                if (importer.animationType != ModelImporterAnimationType.Human)
+                {
+                    importer.animationType = ModelImporterAnimationType.Human;
+                    changed = true;
+                }
+
+                if (!Mathf.Approximately(importer.globalScale, 1f))
+                {
+                    importer.globalScale = 1f;
+                    changed = true;
+                }
+
+                if (!changed)
+                    continue;
+
                 importer.SaveAndReimport();
-                Debug.Log("[Echoes] Reimported to Humanoid: " + p);
+                Debug.Log("[Echoes] Reimported to Humanoid + Scale=1: " + p);
                 anyFixed = true;
             }
         }

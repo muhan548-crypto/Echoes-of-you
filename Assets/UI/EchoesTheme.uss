@@ -1,0 +1,1205 @@
+/* ============================================================
+   ECHOES OF THE MIND — UI Toolkit Theme (Material Design 3)
+   Complete Redesign — System Calibration + Schematic HUD
+   ============================================================ */
+
+/* --- Color Palette (CSS Variables) --- */
+:root {
+    --color-primary: #c2c1ff;
+    --color-primary-container: #5d5cde;
+    --color-primary-fixed: #e2dfff;
+    --color-primary-dim: #c2c1ff;
+    --color-on-primary: #1a09a1;
+    --color-on-primary-container: #f1eeff;
+
+    --color-secondary: #c4c1fb;
+    --color-secondary-container: #444173;
+    --color-on-secondary: #2d2a5b;
+
+    --color-tertiary: #bec6e0;
+    --color-tertiary-container: #656d84;
+
+    --color-error: #ffb4ab;
+    --color-error-container: #93000a;
+    --color-on-error: #690005;
+
+    --color-surface: #0c1324;
+    --color-surface-dim: #0c1324;
+    --color-surface-container-lowest: #070d1f;
+    --color-surface-container-low: #151b2d;
+    --color-surface-container: #191f31;
+    --color-surface-container-high: #23293c;
+    --color-surface-container-highest: #2e3447;
+    --color-surface-bright: #33394c;
+
+    --color-on-surface: #dce1fb;
+    --color-on-surface-variant: #c7c4d6;
+    --color-on-background: #dce1fb;
+    --color-outline: #918fa0;
+    --color-outline-variant: #464554;
+
+    /* Spacing */
+    --sp-xs: 4px;
+    --sp-sm: 12px;
+    --sp-md: 24px;
+    --sp-lg: 48px;
+    --sp-xl: 96px;
+    --sp-safe: 64px;
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+/* Transparent fullscreen container — lets 3D scene show through */
+.root-fullscreen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* Opaque fullscreen — for Main Menu and standalone settings screens */
+.root-fullscreen-opaque {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background-color: #0c1324;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+.text-headline-xl {
+    font-size: 48px;
+    letter-spacing: 7.2px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: normal;
+    color: #dce1fb;
+}
+
+.text-headline-md {
+    font-size: 24px;
+    letter-spacing: 2.4px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: normal;
+    color: #c2c1ff;
+}
+
+.text-body-lg {
+    font-size: 18px;
+    letter-spacing: 0.9px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    color: #dce1fb;
+    white-space: normal;
+}
+
+.text-body-sm {
+    font-size: 14px;
+    letter-spacing: 0.28px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    color: #c7c4d6;
+    white-space: normal;
+}
+
+.text-label-caps {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #dce1fb;
+    white-space: normal;
+}
+
+/* ============================================================
+   LAYOUT / PANELS
+   ============================================================ */
+
+.glass-panel {
+    background-color: rgba(12, 19, 36, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.overlay-dark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(12, 19, 36, 0.6);
+}
+
+.overlay-blur {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(12, 19, 36, 0.4);
+}
+
+.accent-line {
+    height: 1px;
+    width: 96px;
+    background-color: rgba(194, 193, 255, 0.5);
+}
+
+/* ============================================================
+   HEADER BAR
+   ============================================================ */
+
+.header-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 48px;
+    padding-right: 48px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.header-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c2c1ff;
+}
+
+/* ============================================================
+   FOOTER BAR
+   ============================================================ */
+
+.footer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 48px;
+    padding-right: 48px;
+    opacity: 0.4;
+}
+
+/* ============================================================
+   SIDE NAVIGATION
+   ============================================================ */
+
+.side-nav {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 320px;
+    background-color: rgba(7, 13, 31, 0.2);
+    border-right-width: 1px;
+    border-right-color: rgba(255, 255, 255, 0.05);
+    padding-top: 96px;
+    padding-bottom: 96px;
+    padding-left: 24px;
+    padding-right: 24px;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.main-content {
+    position: absolute;
+    left: 320px;
+    top: 72px;
+    right: 0;
+    bottom: 0;
+    padding: 96px;
+}
+
+.main-menu-header {
+    padding-left: 368px; /* 320px + 48px */
+}
+
+.nav-item {
+    flex-direction: row;
+    align-items: center;
+    padding-left: 16px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-right: 16px;
+    color: #918fa0;
+    background-color: transparent;
+    border-width: 0;
+    border-left-width: 0;
+    border-left-color: transparent;
+    -unity-text-align: middle-left;
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    opacity: 0.5;
+    transition-property: color, border-left-color, background-color, opacity;
+    transition-duration: 0.3s;
+}
+
+.nav-item:hover {
+    color: #c2c1ff;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.nav-item--active {
+    color: #c2c1ff;
+    border-left-width: 2px;
+    border-left-color: #c2c1ff;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   GHOST BUTTONS (Pause Menu style)
+   ============================================================ */
+
+.ghost-button {
+    background-color: transparent;
+    border-width: 0;
+    color: #918fa0;
+    font-size: 48px;
+    letter-spacing: 19.2px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: normal;
+    -unity-text-transform: uppercase;
+    -unity-text-align: middle-center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    padding-left: 0;
+    padding-right: 0;
+    opacity: 0.4;
+    transition-property: opacity, color, scale;
+    transition-duration: 0.5s;
+}
+
+.ghost-button:hover {
+    opacity: 1;
+    color: #dce1fb;
+    scale: 1.05 1.05;
+}
+
+.ghost-button--primary {
+    color: #c2c1ff;
+    opacity: 1;
+}
+
+.ghost-button--primary:hover {
+    color: #c2c1ff;
+}
+
+.ghost-button--error:hover {
+    color: rgba(255, 180, 171, 0.8);
+}
+
+/* ============================================================
+   ACTION BUTTONS (Game Over)
+   ============================================================ */
+
+.action-button {
+    width: 64px;
+    height: 64px;
+    background-color: #191f31;
+    border-width: 1px;
+    border-color: rgba(194, 193, 255, 0.2);
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+    transition-property: border-color, background-color;
+    transition-duration: 0.3s;
+}
+
+.action-button:hover {
+    border-color: #c2c1ff;
+    background-color: rgba(194, 193, 255, 0.1);
+}
+
+.action-button--error {
+    border-color: rgba(255, 180, 171, 0.2);
+}
+
+.action-button--error:hover {
+    border-color: #ffb4ab;
+    background-color: rgba(255, 180, 171, 0.1);
+}
+
+/* ============================================================
+   GAME OVER
+   ============================================================ */
+
+.gameover-title {
+    font-size: 48px;
+    color: #c2c1ff;
+    letter-spacing: 19.2px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: normal;
+    -unity-text-transform: uppercase;
+    -unity-text-align: middle-center;
+}
+
+.gameover-subtitle {
+    font-size: 18px;
+    color: #c7c4d6;
+    opacity: 0.9;
+    -unity-font-style: italic;
+    letter-spacing: 3.6px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    -unity-text-align: middle-center;
+}
+
+/* ============================================================
+   PAUSE MENU
+   ============================================================ */
+
+.pulse-node {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #c2c1ff;
+}
+
+.pulse-ring {
+    width: 96px;
+    height: 96px;
+    border-radius: 9999px;
+    border-width: 1px;
+    border-color: rgba(194, 193, 255, 0.1);
+    position: absolute;
+}
+
+/* ============================================================
+   BENTO GRID / CALIBRATION SETTINGS
+   ============================================================ */
+
+.bento-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.settings-scroll-container {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-bottom: 16px;
+}
+
+.bento-cell {
+    background-color: rgba(12, 19, 36, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 24px;
+    flex-direction: column;
+}
+
+.bento-cell-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+}
+
+.bento-cell-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c2c1ff;
+    white-space: normal;
+}
+
+.bento-cell-icon {
+    font-size: 14px;
+    color: #918fa0;
+}
+
+/* Slider row styling */
+.setting-row {
+    flex-direction: column;
+    margin-bottom: 24px;
+}
+
+.setting-row-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.setting-label {
+    font-size: 14px;
+    letter-spacing: 0.28px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    color: #918fa0;
+    transition-property: color;
+    transition-duration: 0.3s;
+    white-space: normal;
+}
+
+.setting-label:hover {
+    color: #c2c1ff;
+}
+
+.setting-value {
+    font-size: 14px;
+    letter-spacing: 0.28px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    color: #c2c1ff;
+}
+
+/* Toggle row styling */
+.toggle-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.03);
+    margin-bottom: 16px;
+}
+
+/* Sensitivity preset buttons */
+.preset-button-row {
+    flex-direction: row;
+    margin-top: 12px;
+}
+
+.preset-button {
+    flex-grow: 1;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.03);
+    font-size: 10px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    -unity-text-align: middle-center;
+    color: #918fa0;
+    transition-property: color, background-color, border-color;
+    transition-duration: 0.3s;
+}
+
+.preset-button:hover {
+    color: #c2c1ff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.preset-button--active {
+    color: #c2c1ff;
+    border-color: rgba(194, 193, 255, 0.4);
+    background-color: rgba(194, 193, 255, 0.1);
+}
+
+/* Resolution picker row */
+.resolution-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.03);
+    margin-bottom: 16px;
+    transition-property: background-color;
+    transition-duration: 0.3s;
+}
+
+.resolution-row:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Calibration status info */
+.calibration-status-value {
+    font-size: 24px;
+    letter-spacing: 2.4px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    color: #c2c1ff;
+    -unity-text-align: middle-center;
+}
+
+.calibration-status-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #918fa0;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* Footer actions */
+.calibration-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.05);
+    padding-top: 24px;
+    margin-top: 24px;
+}
+
+.calibration-btn-ghost {
+    background-color: transparent;
+    border-width: 0;
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #918fa0;
+    padding: 12px 48px;
+    transition-property: color;
+    transition-duration: 0.3s;
+}
+
+.calibration-btn-ghost:hover {
+    color: #c2c1ff;
+}
+
+.calibration-btn-outline {
+    background-color: transparent;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #918fa0;
+    padding: 12px 48px;
+    transition-property: color, background-color;
+    transition-duration: 0.3s;
+}
+
+.calibration-btn-outline:hover {
+    color: #dce1fb;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.calibration-btn-primary {
+    background-color: rgba(194, 193, 255, 0.8);
+    border-width: 0;
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #1a09a1;
+    padding: 12px 48px;
+    transition-property: background-color;
+    transition-duration: 0.3s;
+}
+
+.calibration-btn-primary:hover {
+    background-color: #c2c1ff;
+}
+
+/* ============================================================
+   HUD ELEMENTS
+   ============================================================ */
+
+.hud-bar {
+    height: 2px;
+    background-color: rgba(70, 69, 84, 0.3);
+    flex-grow: 1;
+}
+
+.hud-bar-fill {
+    height: 2px;
+    background-color: #c2c1ff;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-width: 1px;
+    border-color: #c2c1ff;
+}
+
+.hud-stat-value {
+    font-size: 18px;
+    color: #c2c1ff;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+}
+
+.hud-stat-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-text-transform: uppercase;
+    color: rgba(220, 225, 251, 0.8);
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+}
+
+.hud-stat-desc {
+    font-size: 10px;
+    color: #918fa0;
+    -unity-font-style: italic;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    white-space: normal;
+}
+
+/* ============================================================
+   IN-GAME HUD
+   ============================================================ */
+
+.hud-record-panel {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 16px;
+    background-color: rgba(12, 19, 36, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.hud-record-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background-color: #ffb4ab;
+    margin-right: 12px;
+}
+
+.hud-echo-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background-color: rgba(194, 193, 255, 0.6);
+    margin-right: 8px;
+}
+
+.hud-record-bar-bg {
+    width: 120px;
+    height: 4px;
+    background-color: rgba(70, 69, 84, 0.3);
+    border-radius: 2px;
+    margin-right: 12px;
+}
+
+.hud-record-bar-fill {
+    height: 4px;
+    background-color: #ffb4ab;
+    border-radius: 2px;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.hud-echo-label {
+    font-size: 14px;
+    color: #c2c1ff;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    letter-spacing: 2px;
+}
+
+.hud-objective-area {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    align-items: center;
+}
+
+.hud-objective-text {
+    font-size: 14px;
+    color: rgba(194, 193, 255, 0.7);
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    -unity-text-align: upper-center;
+    letter-spacing: 2px;
+    white-space: normal;
+}
+
+.hud-toast-area {
+    position: absolute;
+    bottom: 96px;
+    left: 0;
+    right: 0;
+    align-items: center;
+}
+
+.hud-toast-text {
+    font-size: 16px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    -unity-text-align: upper-center;
+    color: rgba(194, 193, 255, 0.6);
+    white-space: normal;
+}
+
+.hud-echo-state-area {
+    position: absolute;
+    bottom: 64px;
+    left: 0;
+    right: 0;
+    align-items: center;
+}
+
+.hud-echo-state-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-text-transform: uppercase;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-align: upper-center;
+    color: rgba(220, 225, 251, 0.8);
+}
+
+/* ============================================================
+   SCHEMATIC / TIMELINE HUD (Protocolo de Sincronización)
+   ============================================================ */
+
+/* Top-left protocol status */
+.protocol-status {
+    position: absolute;
+    top: 64px;
+    left: 64px;
+    flex-direction: column;
+}
+
+.protocol-title {
+    font-size: 24px;
+    letter-spacing: 2.4px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-text-transform: uppercase;
+    color: #c2c1ff;
+    opacity: 0.8;
+}
+
+.protocol-subtitle {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c7c4d6;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Top-right mode panel */
+.mode-panel {
+    position: absolute;
+    top: 64px;
+    right: 64px;
+    width: 256px;
+    background-color: rgba(35, 41, 60, 0.2);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 24px;
+}
+
+/* Center crosshair */
+.crosshair-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 64px;
+    height: 64px;
+    margin-left: -32px;
+    margin-top: -32px;
+    align-items: center;
+    justify-content: center;
+}
+
+.crosshair-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 9999px;
+    border-width: 1px;
+    border-color: rgba(194, 193, 255, 0.3);
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+}
+
+.crosshair-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background-color: #c2c1ff;
+}
+
+.crosshair-line-h {
+    width: 128px;
+    height: 1px;
+    background-color: rgba(194, 193, 255, 0.2);
+    position: absolute;
+}
+
+.crosshair-line-v {
+    width: 1px;
+    height: 128px;
+    background-color: rgba(194, 193, 255, 0.2);
+    position: absolute;
+}
+
+/* Floating schematic node panels */
+.schematic-node {
+    background-color: rgba(35, 41, 60, 0.2);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 24px;
+    transition-property: background-color;
+    transition-duration: 0.5s;
+}
+
+.schematic-node:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.schematic-node-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c2c1ff;
+    margin-bottom: 4px;
+}
+
+.schematic-node-desc {
+    font-size: 14px;
+    letter-spacing: 0.28px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/Manrope-Variable.ttf');
+    color: #c7c4d6;
+    opacity: 0.8;
+    white-space: normal;
+}
+
+/* Connecting lines */
+.line-h {
+    height: 1px;
+    background-color: rgba(194, 193, 255, 0.4);
+    opacity: 0.6;
+}
+
+.line-v {
+    width: 1px;
+    background-color: rgba(194, 193, 255, 0.4);
+    opacity: 0.6;
+}
+
+/* Key prompt node */
+.key-prompt-node {
+    border-width: 1px;
+    border-color: rgba(194, 193, 255, 0.5);
+    border-radius: 9999px;
+    padding: 4px 24px;
+    background-color: rgba(35, 41, 60, 0.3);
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c2c1ff;
+    -unity-text-align: middle-center;
+}
+
+/* Active node glow */
+.node-active {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(0, 255, 255, 0.4);
+    background-color: transparent;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    color: #c2c1ff;
+    -unity-text-align: middle-center;
+}
+
+/* Bottom timeline bar */
+.timeline-container {
+    position: absolute;
+    bottom: 64px;
+    left: 64px;
+    right: 64px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.timeline-labels {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 768px;
+    margin-bottom: 12px;
+}
+
+.timeline-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    -unity-text-transform: uppercase;
+    color: #c7c4d6;
+    opacity: 0.5;
+}
+
+.timeline-bar-bg {
+    width: 100%;
+    max-width: 768px;
+    height: 1px;
+    background-color: rgba(199, 196, 214, 0.2);
+}
+
+.timeline-bar-fill {
+    height: 1px;
+    background-color: #c2c1ff;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.timeline-playhead {
+    width: 2px;
+    height: 16px;
+    background-color: #c2c1ff;
+    position: absolute;
+    top: -8px;
+}
+
+.timeline-marker {
+    width: 1px;
+    height: 12px;
+    background-color: rgba(199, 196, 214, 0.5);
+    position: absolute;
+    top: -6px;
+}
+
+/* ============================================================
+   FOOTER STATUS (In-Game)
+   ============================================================ */
+
+.footer-status {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.footer-item {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 24px;
+}
+
+.footer-item--inactive {
+    opacity: 0.3;
+}
+
+.footer-item--active {
+    opacity: 1;
+}
+
+.footer-icon {
+    font-size: 10px;
+    margin-right: 6px;
+}
+
+.footer-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    -unity-text-transform: uppercase;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    color: #c2c1ff;
+}
+
+.hud-container {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    align-items: flex-end;
+}
+
+.hud-bar-container {
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.hud-bar-bg {
+    width: 128px;
+    height: 2px;
+    background-color: rgba(70, 69, 84, 0.3);
+}
+
+.hud-bar-fill--stability {
+    background-color: #c2c1ff;
+    width: 82%;
+}
+
+.hud-bar-fill--recall {
+    background-color: #c2c1ff;
+    width: 45%;
+}
+
+.hud-bar-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    -unity-text-transform: uppercase;
+    color: rgba(194, 193, 255, 0.6);
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    -unity-font-style: bold;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   LEVEL BUTTONS
+   ============================================================ */
+
+.level-button {
+    width: 72px;
+    height: 72px;
+    margin: 8px;
+    border-width: 1px;
+    border-color: rgba(194, 193, 255, 0.2);
+    background-color: rgba(194, 193, 255, 0.05);
+    color: #c2c1ff;
+    font-size: 24px;
+    -unity-text-align: middle-center;
+    -unity-font-definition: url('project://database/Assets/UI/Fonts/SpaceGrotesk-Variable.ttf');
+    transition-property: border-color, background-color;
+    transition-duration: 0.3s;
+}
+
+.level-button:hover {
+    border-color: #c2c1ff;
+    background-color: rgba(194, 193, 255, 0.15);
+}
+
+.level-button--locked {
+    opacity: 0.15;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.level-button--completed {
+    border-color: #c2c1ff;
+    background-color: rgba(194, 193, 255, 0.3);
+    color: #ffffff;
+}
+
+/* ============================================================
+   DECORATIVE HUD DETAIL (Bottom Right Vertical Glow)
+   ============================================================ */
+
+.hud-detail-glow {
+    position: absolute;
+    bottom: 48px;
+    right: 48px;
+    flex-direction: column;
+    align-items: flex-end;
+    opacity: 0.4;
+}
+
+/* ============================================================
+   GLOBAL UI SCALE CLASSES
+   ============================================================ */
+
+/* Scale Large — 1.25x multiplier */
+.scale-large .text-headline-xl { font-size: 60px; letter-spacing: 9px; }
+.scale-large .text-headline-md { font-size: 30px; letter-spacing: 3px; }
+.scale-large .text-body-lg { font-size: 22px; }
+.scale-large .text-body-sm { font-size: 17px; }
+.scale-large .text-label-caps { font-size: 15px; letter-spacing: 3.75px; }
+.scale-large .ghost-button { font-size: 60px; letter-spacing: 24px; padding-top: 16px; padding-bottom: 16px; }
+.scale-large .gameover-title { font-size: 60px; letter-spacing: 24px; }
+.scale-large .gameover-subtitle { font-size: 22px; }
+.scale-large .nav-item { font-size: 15px; letter-spacing: 3.75px; padding-top: 12px; padding-bottom: 12px; }
+.scale-large .header-title { font-size: 15px; letter-spacing: 3.75px; }
+.scale-large .setting-label { font-size: 17px; }
+.scale-large .setting-value { font-size: 17px; }
+.scale-large .bento-cell-title { font-size: 15px; }
+.scale-large .preset-button { font-size: 13px; }
+.scale-large .hud-echo-label { font-size: 17px; }
+.scale-large .hud-objective-text { font-size: 17px; }
+.scale-large .hud-toast-text { font-size: 20px; }
+.scale-large .hud-echo-state-label { font-size: 15px; }
+.scale-large .protocol-title { font-size: 30px; }
+.scale-large .schematic-node-title { font-size: 15px; }
+.scale-large .schematic-node-desc { font-size: 17px; }
+.scale-large .timeline-label { font-size: 15px; }
+
+/* Scale Large Physical Layout Overrides */
+.scale-large .side-nav { width: 380px; }
+.scale-large .main-content { left: 380px; padding: 108px; }
+.scale-large .main-menu-header { padding-left: 440px; }
+.scale-large .bento-cell { padding: 30px; }
+.scale-large .setting-row { margin-bottom: 30px; }
+.scale-large .toggle-row, .scale-large .resolution-row { padding: 30px; margin-bottom: 20px; }
+
+/* Scale Extra Large — 1.5x multiplier */
+.scale-xl .text-headline-xl { font-size: 72px; letter-spacing: 10.8px; }
+.scale-xl .text-headline-md { font-size: 36px; letter-spacing: 3.6px; }
+.scale-xl .text-body-lg { font-size: 27px; }
+.scale-xl .text-body-sm { font-size: 21px; }
+.scale-xl .text-label-caps { font-size: 18px; letter-spacing: 4.5px; }
+.scale-xl .ghost-button { font-size: 72px; letter-spacing: 28.8px; padding-top: 20px; padding-bottom: 20px; }
+.scale-xl .gameover-title { font-size: 72px; letter-spacing: 28.8px; }
+.scale-xl .gameover-subtitle { font-size: 27px; }
+.scale-xl .nav-item { font-size: 18px; letter-spacing: 4.5px; padding-top: 16px; padding-bottom: 16px; }
+.scale-xl .header-title { font-size: 18px; letter-spacing: 4.5px; }
+.scale-xl .setting-label { font-size: 21px; }
+.scale-xl .setting-value { font-size: 21px; }
+.scale-xl .bento-cell-title { font-size: 18px; }
+.scale-xl .preset-button { font-size: 15px; }
+.scale-xl .hud-echo-label { font-size: 21px; }
+.scale-xl .hud-objective-text { font-size: 21px; }
+.scale-xl .hud-toast-text { font-size: 24px; }
+.scale-xl .hud-echo-state-label { font-size: 18px; }
+.scale-xl .protocol-title { font-size: 36px; }
+.scale-xl .schematic-node-title { font-size: 18px; }
+.scale-xl .schematic-node-desc { font-size: 21px; }
+.scale-xl .timeline-label { font-size: 18px; }
+
+/* Scale Extra Large Physical Layout Overrides */
+.scale-xl .side-nav { width: 440px; }
+.scale-xl .main-content { left: 440px; padding: 120px; }
+.scale-xl .main-menu-header { padding-left: 512px; }
+.scale-xl .bento-cell { padding: 36px; }
+.scale-xl .setting-row { margin-bottom: 36px; }
+.scale-xl .toggle-row, .scale-xl .resolution-row { padding: 36px; margin-bottom: 24px; }

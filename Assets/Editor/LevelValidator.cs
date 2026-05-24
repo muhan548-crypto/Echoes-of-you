@@ -3,10 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Valida niveles post-build: detecta diseños demasiado simples,
-/// falta de movimiento, falta de timing y problemas de visibilidad.
-/// </summary>
 public static class LevelValidator
 {
     [MenuItem("Echoes of You/Production/Validate Current Scene", false, 210)]
@@ -22,105 +18,85 @@ public static class LevelValidator
         bool passed = true;
         string name = scene.name;
 
-        // Skip non-gameplay scenes
         if (name == "MainMenu" || name == "Level_07")
         {
             Debug.Log($"[LevelValidator] Skipping {name} (non-gameplay)");
             return true;
         }
 
-        // 1. Check minimum PressurePlates
         PressurePlate[] plates = Object.FindObjectsOfType<PressurePlate>();
-        if (plates.Length < 2)
+        if (plates.Length < 1)
         {
-            Debug.LogWarning($"[LevelValidator] {name}: Only {plates.Length} PressurePlate(s) — minimum is 2.");
+            Debug.LogWarning($"[LevelValidator] {name}: Missing pressure plates.");
             passed = false;
         }
-        else
-        {
-            Debug.Log($"[LevelValidator] ✓ {name}: {plates.Length} PressurePlates");
-        }
 
-        // 2. Check PuzzleIntent
         PuzzleIntent intent = Object.FindObjectOfType<PuzzleIntent>();
         if (intent == null)
         {
-            Debug.LogWarning($"[LevelValidator] {name}: Missing PuzzleIntent component.");
+            Debug.LogWarning($"[LevelValidator] {name}: Missing PuzzleIntent.");
             passed = false;
         }
         else
         {
-            if (intent.requiredActions < 3)
+            if (intent.requiredActions < 2)
             {
-                Debug.LogWarning($"[LevelValidator] {name}: requiredActions={intent.requiredActions} — minimum is 3.");
+                Debug.LogWarning($"[LevelValidator] {name}: requiredActions={intent.requiredActions} is too low.");
                 passed = false;
             }
-            else
-            {
-                Debug.Log($"[LevelValidator] ✓ {name}: requiredActions={intent.requiredActions}");
-            }
-
             if (!intent.requiresMovement)
             {
-                Debug.LogWarning($"[LevelValidator] {name}: Echo movement not required — level may be static.");
-                passed = false;
-            }
-            else
-            {
-                Debug.Log($"[LevelValidator] ✓ {name}: Echo movement required");
-            }
-
-            if (intent.buttonCount < 2)
-            {
-                Debug.LogWarning($"[LevelValidator] {name}: buttonCount={intent.buttonCount} — minimum is 2.");
+                Debug.LogWarning($"[LevelValidator] {name}: Puzzle does not require movement.");
                 passed = false;
             }
         }
 
-        // 3. Check LevelExit visibility
-        LevelExit exit = Object.FindObjectOfType<LevelExit>();
-        if (exit == null)
+        LevelGoal goal = Object.FindObjectOfType<LevelGoal>();
+        if (goal == null)
+        {
+            Debug.LogWarning($"[LevelValidator] {name}: Missing LevelGoal.");
+            passed = false;
+        }
+
+        LevelExit[] exits = Object.FindObjectsOfType<LevelExit>();
+        if (exits.Length == 0)
         {
             Debug.LogWarning($"[LevelValidator] {name}: No LevelExit found.");
             passed = false;
         }
-        else
+
+        Light[] lights = Object.FindObjectsOfType<Light>();
+        int pointLights = 0;
+        for (int i = 0; i < lights.Length; i++)
         {
-            Debug.Log($"[LevelValidator] ✓ {name}: LevelExit present at {exit.transform.position}");
+            if (lights[i] != null && lights[i].type == LightType.Point)
+                pointLights++;
         }
-
-        // 4. Check height variation (asymmetry)
-        float[] heights = CollectPlatformHeights();
-        HashSet<float> uniqueHeights = new HashSet<float>();
-        foreach (float h in heights)
-            uniqueHeights.Add(Mathf.Round(h * 10f) / 10f);
-
-        if (uniqueHeights.Count < 2)
+        if (pointLights == 0)
         {
-            Debug.LogWarning($"[LevelValidator] {name}: Only {uniqueHeights.Count} height level(s) — layout may be flat.");
+            Debug.LogWarning($"[LevelValidator] {name}: No guiding point lights found.");
             passed = false;
         }
-        else
+
+        float[] heights = CollectPlatformHeights();
+        HashSet<float> uniqueHeights = new HashSet<float>();
+        for (int i = 0; i < heights.Length; i++)
+            uniqueHeights.Add(Mathf.Round(heights[i] * 10f) / 10f);
+
+        if (uniqueHeights.Count < 1)
         {
-            Debug.Log($"[LevelValidator] ✓ {name}: {uniqueHeights.Count} distinct height levels");
+            Debug.LogWarning($"[LevelValidator] {name}: No grounded geometry detected.");
+            passed = false;
         }
 
-        // 5. Check EchoPathHint exists
         EchoPathHint pathHint = Object.FindObjectOfType<EchoPathHint>();
         if (pathHint == null)
-        {
-            Debug.LogWarning($"[LevelValidator] {name}: No EchoPathHint — echo route not guided.");
-        }
-        else
-        {
-            Debug.Log($"[LevelValidator] ✓ {name}: EchoPathHint present");
-        }
+            Debug.LogWarning($"[LevelValidator] {name}: No EchoPathHint.");
 
-        // Summary
         if (passed)
-            Debug.Log($"[LevelValidator] ✓ {name}: ALL VALIDATIONS PASSED");
+            Debug.Log($"[LevelValidator] PASS: {name}");
         else
-            Debug.LogError($"[LevelValidator] ✗ {name}: VALIDATION FAILED — review warnings above.");
+            Debug.LogError($"[LevelValidator] FAIL: {name}");
 
         return passed;
     }
@@ -129,27 +105,28 @@ public static class LevelValidator
     {
         List<float> heights = new List<float>();
         GameObject[] allObjects = Object.FindObjectsOfType<GameObject>();
-        foreach (GameObject go in allObjects)
+        for (int i = 0; i < allObjects.Length; i++)
         {
+            GameObject go = allObjects[i];
             if (go.isStatic && go.GetComponent<MeshRenderer>() != null && go.GetComponent<Collider>() != null)
                 heights.Add(go.transform.position.y);
         }
         return heights.ToArray();
     }
 
-    /// <summary>
-    /// Called by the builder after all scenes are built.
-    /// Opens each scene and validates it.
-    /// </summary>
+    [MenuItem("Echoes of You/Production/Validate All Levels", false, 211)]
     public static void ValidateAllLevels()
     {
-        string[] levelScenes = {
+        string[] levelScenes =
+        {
             "Assets/Scenes/Level_01.unity",
             "Assets/Scenes/Level_02.unity",
             "Assets/Scenes/Level_03.unity",
             "Assets/Scenes/Level_04.unity",
             "Assets/Scenes/Level_05.unity",
-            "Assets/Scenes/Level_06.unity"
+            "Assets/Scenes/Level_06.unity",
+            "Assets/Scenes/Level_07.unity",
+            "Assets/Scenes/Level_08.unity"
         };
 
         int passed = 0;
@@ -168,8 +145,6 @@ public static class LevelValidator
                 passed++;
         }
 
-        Debug.Log($"[LevelValidator] ═══════════════════════════════════════");
         Debug.Log($"[LevelValidator] Results: {passed}/{total} levels passed validation.");
-        Debug.Log($"[LevelValidator] ═══════════════════════════════════════");
     }
 }

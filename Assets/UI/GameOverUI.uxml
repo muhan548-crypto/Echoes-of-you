@@ -1,0 +1,77 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/EchoesTheme.uss" />
+    
+    <ui:VisualElement name="gameover-root" class="root-fullscreen hidden">
+        <!-- Dark vignette overlay -->
+        <ui:VisualElement class="overlay-dark" />
+        
+        <!-- Background image -->
+        <ui:VisualElement name="gameover-bg" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0.5; background-image: url('project://database/Assets/UI/Images/void_fog_bg.png');" />
+        
+        <!-- Top Header -->
+        <ui:VisualElement class="header-bar">
+            <ui:Label text="E C H O E S" class="header-title" />
+        </ui:VisualElement>
+        
+        <!-- Center Content -->
+        <ui:VisualElement style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center; flex-direction: column;">
+            
+            <!-- Silhouette area -->
+            <ui:VisualElement style="width: 400px; height: 400px; align-items: center; justify-content: center; margin-bottom: 48px;">
+                <ui:VisualElement style="width: 300px; height: 400px; opacity: 0.4; background-image: url('project://database/Assets/UI/Images/fragmenting_silhouette.png');" />
+                <!-- Decorative fragments -->
+                <ui:VisualElement style="position: absolute; width: 24px; height: 24px; border-width: 1px; border-color: rgba(194,193,255,0.6); rotate: 45deg; top: 25%; left: 33%;" />
+                <ui:VisualElement style="position: absolute; width: 12px; height: 12px; background-color: rgba(194,193,255,0.4); top: 50%; right: 25%;" />
+                <ui:VisualElement style="position: absolute; width: 32px; height: 32px; border-width: 1px; border-color: rgba(255,255,255,0.1); rotate: -12deg; bottom: 33%; left: 25%;" />
+            </ui:VisualElement>
+            
+            <!-- Error line -->
+            <ui:VisualElement style="width: 64px; height: 1px; background-color: rgba(255,180,171,0.4); margin-bottom: 24px;" />
+            
+            <!-- Title -->
+            <ui:Label name="gameover-title" text="FRAGMENTADO" class="gameover-title" />
+            
+            <!-- Subtitle -->
+            <ui:Label name="gameover-subtitle" text="La sincronización con el eco ha fallado." class="gameover-subtitle" style="margin-top: 24px; max-width: 500px;" />
+        </ui:VisualElement>
+        
+        <!-- Bottom Action Buttons -->
+        <ui:VisualElement style="position: absolute; bottom: 64px; left: 0; right: 0; flex-direction: row; justify-content: center; align-items: center;">
+            
+            <!-- Retry button -->
+            <ui:Button name="btn-retry" class="action-button" style="flex-direction: column; align-items: center; width: auto; height: auto; background-color: transparent; border-width: 0;">
+                <ui:VisualElement class="action-button" style="margin-bottom: 12px;">
+                    <ui:Label text="↻" style="font-size: 28px; color: rgba(255,255,255,0.6); -unity-text-align: middle-center;" />
+                </ui:VisualElement>
+                <ui:Label text="REINTENTAR" class="text-label-caps" style="color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 3.3px;" />
+            </ui:Button>
+            
+            <!-- Decorative spacer -->
+            <ui:VisualElement style="flex-direction: row; align-items: center; margin-left: 64px; margin-right: 64px;">
+                <ui:VisualElement style="width: 48px; height: 1px; background-color: rgba(255,255,255,0.1);" />
+                <ui:VisualElement style="width: 6px; height: 6px; border-radius: 9999px; background-color: rgba(255,255,255,0.05); margin-left: 16px; margin-right: 16px;" />
+                <ui:VisualElement style="width: 48px; height: 1px; background-color: rgba(255,255,255,0.1);" />
+            </ui:VisualElement>
+            
+            <!-- Exit button -->
+            <ui:Button name="btn-exit" class="action-button--error" style="flex-direction: column; align-items: center; width: auto; height: auto; background-color: transparent; border-width: 0;">
+                <ui:VisualElement class="action-button action-button--error" style="margin-bottom: 12px;">
+                    <ui:Label text="✕" style="font-size: 28px; color: rgba(255,255,255,0.6); -unity-text-align: middle-center;" />
+                </ui:VisualElement>
+                <ui:Label text="SALIR" class="text-label-caps" style="color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 3.3px;" />
+            </ui:Button>
+        </ui:VisualElement>
+        
+        <!-- Corner HUD: top-right -->
+        <ui:VisualElement style="position: absolute; top: 48px; right: 48px; align-items: flex-end;">
+            <ui:VisualElement style="width: 1px; height: 192px; background-color: rgba(255,180,171,0.6);" />
+            <ui:Label text="SYSTEM_CRITICAL_FAILURE" class="text-label-caps" style="font-size: 10px; color: rgba(255,180,171,0.6); rotate: 90deg; margin-top: 24px;" />
+        </ui:VisualElement>
+        
+        <!-- Corner HUD: bottom-left -->
+        <ui:VisualElement style="position: absolute; bottom: 48px; left: 48px; align-items: flex-start;">
+            <ui:Label name="gameover-stability" text="COGNITIVE_STABILITY_0.0%" class="text-label-caps" style="font-size: 10px; color: rgba(194,193,255,0.4); rotate: -90deg;" />
+            <ui:VisualElement style="width: 1px; height: 192px; background-color: rgba(194,193,255,0.6); margin-top: 24px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

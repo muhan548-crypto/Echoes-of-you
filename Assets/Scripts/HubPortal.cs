@@ -52,6 +52,7 @@ public class HubPortal : MonoBehaviour
         {
             if (_isUnlocked)
             {
+                PostProcessingSetup.PrepareForSceneReload();
                 SceneManager.LoadScene(sceneName);
             }
             else

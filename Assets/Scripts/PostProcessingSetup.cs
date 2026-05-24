@@ -1,23 +1,44 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 #if UNITY_POST_PROCESSING_STACK_V2
 using UnityEngine.Rendering.PostProcessing;
 #endif
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
-/// <summary>
-/// Auto-configura un Post Processing Volume global al iniciar la escena.
-/// Solo funciona si com.unity.postprocessing está instalado.
-/// Si no está instalado, el script no genera errores y no hace nada.
-/// Limpia volumes duplicados al cambiar de escena.
-/// Re-aplica PostProcessLayer en cada cambio de escena para evitar NullReferenceException.
-/// </summary>
 public class PostProcessingSetup : MonoBehaviour
 {
     static PostProcessingSetup _instance;
+
+#if UNITY_POST_PROCESSING_STACK_V2
     static GameObject _volumeGo;
+    static PostProcessProfile _runtimeProfile;
+    static PostProcessResources _cachedResources;
+
+    Coroutine _setupRoutine;
+    bool _loggedMissingResources;
+
+    public static PostProcessProfile RuntimeProfile => _runtimeProfile;
+#endif
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void AutoSetup()
+    {
+        EnsureInstance();
+        _instance?.ScheduleSetup();
+    }
+
+    public static void PrepareForSceneReload()
+    {
+        if (_instance == null)
+            return;
+
+        _instance.CleanupRuntimeObjects(true);
+    }
+
+    static void EnsureInstance()
     {
         if (_instance != null)
             return;
@@ -25,14 +46,11 @@ public class PostProcessingSetup : MonoBehaviour
         GameObject go = new GameObject("PostProcessingSetup");
         _instance = go.AddComponent<PostProcessingSetup>();
         DontDestroyOnLoad(go);
-
-        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (_instance != null)
-            _instance.Setup();
+        _instance?.ScheduleSetup();
     }
 
     void Awake()
@@ -44,86 +62,252 @@ public class PostProcessingSetup : MonoBehaviour
         }
 
         _instance = this;
-        Setup();
+        DontDestroyOnLoad(gameObject);
     }
 
-    void Setup()
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        ScheduleSetup();
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+#if UNITY_POST_PROCESSING_STACK_V2
+        if (_setupRoutine != null)
+        {
+            StopCoroutine(_setupRoutine);
+            _setupRoutine = null;
+        }
+#endif
+    }
+
+    void OnDestroy()
+    {
+        if (_instance != this)
+            return;
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        CleanupRuntimeObjects(false);
+        _instance = null;
+    }
+
+    void ScheduleSetup()
     {
 #if UNITY_POST_PROCESSING_STACK_V2
-        SetupPostProcessing();
-#else
-        Debug.Log("PostProcessingSetup: com.unity.postprocessing no detectado.");
+        if (_setupRoutine != null)
+            StopCoroutine(_setupRoutine);
+
+        _setupRoutine = StartCoroutine(SetupWhenCameraReady());
 #endif
     }
 
 #if UNITY_POST_PROCESSING_STACK_V2
-    void SetupPostProcessing()
+    IEnumerator SetupWhenCameraReady()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
+        CleanupRuntimeObjects(false);
 
-        // Limpiar el Layer si por alguna razón la cámara persiste (aunque en Echoes se recrea)
-        PostProcessLayer existingLayer = cam.GetComponent<PostProcessLayer>();
-        if (existingLayer == null)
+        for (int frame = 0; frame < 40; frame++)
         {
-            PostProcessLayer layer = cam.gameObject.AddComponent<PostProcessLayer>();
-            layer.volumeTrigger = cam.transform;
-            layer.volumeLayer = LayerMask.GetMask("Default");
-            layer.antialiasingMode = PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing;
+            Camera cameraRef = Camera.main;
+            if (cameraRef != null)
+            {
+                SetupPostProcessing(cameraRef);
+                _setupRoutine = null;
+                yield break;
+            }
+
+            yield return null;
         }
 
-        // Siempre reconstruir el Volume global de 0 para asegurar Profile fresco
+        _setupRoutine = null;
+    }
+
+    void SetupPostProcessing(Camera cameraRef)
+    {
+        if (cameraRef == null)
+            return;
+
+        if (!TryResolveResources(out PostProcessResources resources))
+        {
+            DisablePostProcessing(cameraRef);
+            return;
+        }
+
+        PostProcessLayer layer = cameraRef.GetComponent<PostProcessLayer>();
+        if (layer == null)
+            layer = cameraRef.gameObject.AddComponent<PostProcessLayer>();
+
+        layer.volumeTrigger = cameraRef.transform;
+        layer.volumeLayer = LayerMask.GetMask("Default");
+        layer.stopNaNPropagation = true;
+        layer.antialiasingMode = PostProcessLayer.Antialiasing.SubpixelMorphologicalAntialiasing;
+        layer.Init(resources);
+        layer.enabled = true;
+
         if (_volumeGo != null)
-        {
             Destroy(_volumeGo);
-        }
+        if (_runtimeProfile != null)
+            Destroy(_runtimeProfile);
 
         _volumeGo = new GameObject("GlobalPostProcessVolume");
         PostProcessVolume volume = _volumeGo.AddComponent<PostProcessVolume>();
         volume.isGlobal = true;
-        volume.priority = 1;
+        volume.priority = 1f;
 
-        PostProcessProfile profile = ScriptableObject.CreateInstance<PostProcessProfile>();
+        _runtimeProfile = ScriptableObject.CreateInstance<PostProcessProfile>();
 
-        // --- Bloom ---
-        Bloom bloom = profile.AddSettings<Bloom>();
+        Bloom bloom = _runtimeProfile.AddSettings<Bloom>();
         bloom.enabled.value = true;
-        bloom.intensity.value = 1.2f;
+        bloom.intensity.value = 0.85f;
         bloom.intensity.overrideState = true;
-        bloom.threshold.value = 1.1f;
+        bloom.threshold.value = 1.2f;
         bloom.threshold.overrideState = true;
-        bloom.softKnee.value = 0.5f;
+        bloom.softKnee.value = 0.45f;
         bloom.softKnee.overrideState = true;
-        bloom.diffusion.value = 7f;
+        bloom.diffusion.value = 6f;
         bloom.diffusion.overrideState = true;
 
-        // --- Color Grading ---
-        ColorGrading cg = profile.AddSettings<ColorGrading>();
-        cg.enabled.value = true;
-        cg.gradingMode.value = GradingMode.LowDefinitionRange;
-        cg.gradingMode.overrideState = true;
-        cg.lift.value = new Vector4(-0.1f, -0.05f, 0.05f, 0f);
-        cg.lift.overrideState = true;
-        cg.gamma.value = new Vector4(0f, 0f, 0.01f, 0.05f);
-        cg.gamma.overrideState = true;
-        cg.gain.value = new Vector4(0f, 0f, 0.02f, 0f);
-        cg.gain.overrideState = true;
-        cg.saturation.value = -15f;
-        cg.saturation.overrideState = true;
-        cg.contrast.value = 15f;
-        cg.contrast.overrideState = true;
+        ColorGrading grading = _runtimeProfile.AddSettings<ColorGrading>();
+        grading.enabled.value = true;
+        grading.gradingMode.value = GradingMode.LowDefinitionRange;
+        grading.gradingMode.overrideState = true;
+        grading.lift.value = new Vector4(-0.08f, -0.06f, 0.02f, 0f);
+        grading.lift.overrideState = true;
+        grading.gamma.value = new Vector4(0f, 0f, 0.02f, -0.02f);
+        grading.gamma.overrideState = true;
+        grading.gain.value = new Vector4(0.01f, 0.01f, 0.02f, 0f);
+        grading.gain.overrideState = true;
+        grading.saturation.value = -28f;
+        grading.saturation.overrideState = true;
+        grading.contrast.value = 22f;
+        grading.contrast.overrideState = true;
 
-        // --- Vignette ---
-        Vignette vignette = profile.AddSettings<Vignette>();
+        Vignette vignette = _runtimeProfile.AddSettings<Vignette>();
         vignette.enabled.value = true;
-        vignette.intensity.value = 0.4f;
+        vignette.intensity.value = 0.33f;
         vignette.intensity.overrideState = true;
-        vignette.smoothness.value = 1.0f;
+        vignette.smoothness.value = 0.92f;
         vignette.smoothness.overrideState = true;
-        vignette.color.value = new Color(0f, 0f, 0f, 1f);
+        vignette.color.value = Color.black;
         vignette.color.overrideState = true;
 
-        volume.profile = profile;
+        AmbientOcclusion ambientOcclusion = _runtimeProfile.AddSettings<AmbientOcclusion>();
+        ambientOcclusion.enabled.value = false;
+        ambientOcclusion.enabled.overrideState = true;
+
+        ChromaticAberration ca = _runtimeProfile.AddSettings<ChromaticAberration>();
+        ca.enabled.value = true;
+        ca.intensity.value = 0.08f;
+        ca.intensity.overrideState = true;
+
+        LensDistortion ld = _runtimeProfile.AddSettings<LensDistortion>();
+        ld.enabled.value = true;
+        ld.intensity.value = 0f;
+        ld.intensity.overrideState = true;
+
+        volume.profile = _runtimeProfile;
     }
+
+    void DisablePostProcessing(Camera cameraRef)
+    {
+        if (cameraRef != null)
+        {
+            PostProcessLayer layer = cameraRef.GetComponent<PostProcessLayer>();
+            if (layer != null)
+                layer.enabled = false;
+        }
+
+        CleanupRuntimeObjects(false);
+    }
+
+    bool TryResolveResources(out PostProcessResources resources)
+    {
+        resources = _cachedResources;
+        if (resources != null)
+            return true;
+
+        PostProcessResources[] loadedResources = Resources.FindObjectsOfTypeAll<PostProcessResources>();
+        if (loadedResources != null)
+        {
+            for (int i = 0; i < loadedResources.Length; i++)
+            {
+                if (loadedResources[i] != null)
+                {
+                    _cachedResources = loadedResources[i];
+                    resources = _cachedResources;
+                    return true;
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        _cachedResources = AssetDatabase.LoadAssetAtPath<PostProcessResources>(
+            "Library/PackageCache/com.unity.postprocessing@141166b789e3/PostProcessing/PostProcessResources.asset");
+        if (_cachedResources == null)
+        {
+            string[] guids = AssetDatabase.FindAssets("t:PostProcessResources");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                _cachedResources = AssetDatabase.LoadAssetAtPath<PostProcessResources>(path);
+                if (_cachedResources != null)
+                    break;
+            }
+        }
+#endif
+
+        resources = _cachedResources;
+        if (resources != null)
+            return true;
+
+        if (!_loggedMissingResources)
+        {
+            _loggedMissingResources = true;
+            Debug.LogWarning("PostProcessingSetup: PostProcessResources no encontrado. Se desactiva el post process para evitar NullReferenceException.");
+        }
+
+        return false;
+    }
+
+    void CleanupRuntimeObjects(bool disableSceneLayers)
+    {
+        if (_setupRoutine != null)
+        {
+            StopCoroutine(_setupRoutine);
+            _setupRoutine = null;
+        }
+
+        if (disableSceneLayers)
+        {
+            PostProcessLayer[] layers = FindObjectsOfType<PostProcessLayer>(true);
+            for (int i = 0; i < layers.Length; i++)
+            {
+                if (layers[i] == null)
+                    continue;
+
+                layers[i].enabled = false;
+                Destroy(layers[i]);
+            }
+        }
+
+        if (_volumeGo != null)
+        {
+            Destroy(_volumeGo);
+            _volumeGo = null;
+        }
+
+        if (_runtimeProfile != null)
+        {
+            Destroy(_runtimeProfile);
+            _runtimeProfile = null;
+        }
+    }
+#else
+    void ScheduleSetup() { }
+    void CleanupRuntimeObjects(bool disableSceneLayers) { }
 #endif
 }

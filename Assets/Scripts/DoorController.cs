@@ -8,10 +8,14 @@ using UnityEngine;
 public class DoorController : MonoBehaviour, IResettableLevelObject
 {
     public PressurePlate[] plates;
+    public bool latchOpen = true;
+    public bool invertLogic = false;
 
     Collider _col;
     Renderer[] _renderers;
     bool _isOpen;
+
+    public bool IsOpen => _isOpen;
 
     public event Action<bool> DoorStateChanged;
 
@@ -60,13 +64,22 @@ public class DoorController : MonoBehaviour, IResettableLevelObject
         {
             foreach (PressurePlate plate in plates)
             {
-                if (plate != null && !plate.IsPressed)
+                if (plate != null)
                 {
-                    shouldOpen = false;
-                    break;
+                    bool checkState = plate.IsPressed;
+                    if (invertLogic) checkState = !checkState;
+
+                    if (!checkState)
+                    {
+                        shouldOpen = false;
+                        break;
+                    }
                 }
             }
         }
+
+        if (latchOpen && _isOpen)
+            shouldOpen = true;
 
         if (_isOpen != shouldOpen)
         {
@@ -77,14 +90,34 @@ public class DoorController : MonoBehaviour, IResettableLevelObject
 
             if (_isOpen)
             {
-                GameFeelController.Instance?.PlayPuzzleSolved(transform.position);
                 if (TutorialHUD.Instance != null)
                     TutorialHUD.Instance.ShowMessage("Puerta abierta", "", 1.5f);
             }
         }
 
-        if (_col != null)
-            _col.enabled = !_isOpen;
+        ApplyVisualState();
+    }
+
+    /// <summary>
+    /// Force the door into a specific open/closed state. Used by PuzzleWire
+    /// and other external controllers. Recursively disables/enables ALL
+    /// colliders in children so invisible child geometry can't block players.
+    /// </summary>
+    public void SetOpenState(bool open)
+    {
+        _isOpen = open;
+        ApplyVisualState();
+    }
+
+    void ApplyVisualState()
+    {
+        // Disable ALL colliders recursively (root + children)
+        Collider[] allColliders = GetComponentsInChildren<Collider>(true);
+        foreach (Collider c in allColliders)
+        {
+            if (c != null)
+                c.enabled = !_isOpen;
+        }
 
         if (_renderers == null)
             return;

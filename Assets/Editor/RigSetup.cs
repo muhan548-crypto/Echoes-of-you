@@ -24,12 +24,24 @@ public static class RigSetup
             if (importer == null)
                 continue;
 
-            if (importer.animationType == ModelImporterAnimationType.Human)
+            bool changed = false;
+            if (importer.animationType != ModelImporterAnimationType.Human)
+            {
+                importer.animationType = ModelImporterAnimationType.Human;
+                changed = true;
+            }
+
+            if (!Mathf.Approximately(importer.globalScale, 1f))
+            {
+                importer.globalScale = 1f;
+                changed = true;
+            }
+
+            if (!changed)
                 continue;
 
-            importer.animationType = ModelImporterAnimationType.Human;
             importer.SaveAndReimport();
-            Debug.Log("[Echoes] Humanoid rig fixed: " + path);
+            Debug.Log("[Echoes] Rig y escala corregidos: " + path);
         }
     }
 }

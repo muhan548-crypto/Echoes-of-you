@@ -10,8 +10,15 @@ public class ThirdPersonCamera : MonoBehaviour
     [Header("Target")]
     public Transform target;
     public Vector3 focusOffset = new Vector3(0f, 1.4f, 0f);
-    public float distance = 7.2f;
+    public float distance = 4.1f;
     public float movementLead = 0.55f;
+
+    [Header("Auto Frame")]
+    public bool autoFrameTarget = true;
+    public float minDistance = 3.2f;
+    public float maxDistance = 4.4f;
+    [Range(0.5f, 0.85f)]
+    public float focusHeightRatio = 0.72f;
 
     [Header("Smoothing")]
     public float followDamping = 9f;
@@ -45,6 +52,19 @@ public class ThirdPersonCamera : MonoBehaviour
     Vector3 _lastFocusPoint;
     float _pulseTargetFov;
     float _pulseUntil;
+    Vector3 _eventFocusPoint;
+    float _eventFocusWeight;
+    float _eventFocusUntil;
+    int _framedTargetId = int.MinValue;
+
+    public static ThirdPersonCamera ResolveActive()
+    {
+        Camera main = Camera.main;
+        if (main != null && main.TryGetComponent(out ThirdPersonCamera cameraRef))
+            return cameraRef;
+
+        return FindAnyObjectByType<ThirdPersonCamera>();
+    }
 
     void Start()
     {
@@ -57,6 +77,7 @@ public class ThirdPersonCamera : MonoBehaviour
             _smoothedFocusPoint = GetFocusPoint();
             _orbitForward = ResolvePlanarForward(transform.forward, target.forward, target.right, targetUp);
             _lastFocusPoint = _smoothedFocusPoint;
+            AutoFrameCurrentTarget();
         }
 
         if (_camera != null)
@@ -73,6 +94,9 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if (target == null)
             return;
+
+        if (autoFrameTarget && target.GetInstanceID() != _framedTargetId)
+            AutoFrameCurrentTarget();
 
         Vector3 targetUp = target.up;
         float yawDelta = Input.GetAxis("Mouse X") * mouseSensitivity;
@@ -127,6 +151,8 @@ public class ThirdPersonCamera : MonoBehaviour
         Vector3 planarLead = Vector3.ProjectOnPlane(focusVelocity, targetUp);
         if (planarLead.sqrMagnitude > 0.001f)
             desiredFocusPoint += Vector3.ClampMagnitude(planarLead, 2f) * movementLead * 0.08f;
+        if (Time.unscaledTime < _eventFocusUntil)
+            desiredFocusPoint = Vector3.Lerp(desiredFocusPoint, _eventFocusPoint, _eventFocusWeight);
 
         _smoothedFocusPoint = Vector3.Lerp(_smoothedFocusPoint, desiredFocusPoint, DampingFactor(followDamping, Time.deltaTime));
         _lastFocusPoint = desiredFocusPoint;
@@ -154,9 +180,74 @@ public class ThirdPersonCamera : MonoBehaviour
         _pulseUntil = Time.unscaledTime + Mathf.Max(0.05f, holdSeconds);
     }
 
+    public void RequestEventFocus(Vector3 worldPoint, float weight = 0.35f, float holdSeconds = 0.45f, float pulseFov = 60f)
+    {
+        _eventFocusPoint = worldPoint;
+        _eventFocusWeight = Mathf.Clamp01(weight);
+        _eventFocusUntil = Time.unscaledTime + Mathf.Max(0.05f, holdSeconds);
+        RequestFovPulse(pulseFov, holdSeconds);
+    }
+
     Vector3 GetFocusPoint()
     {
         return target.position + target.rotation * focusOffset;
+    }
+
+    void AutoFrameCurrentTarget()
+    {
+        if (!autoFrameTarget || target == null)
+            return;
+
+        Transform framingRoot = ResolveFramingRoot();
+        if (!TryGetTargetBounds(framingRoot, out Bounds bounds))
+            return;
+
+        Vector3 up = framingRoot.up.sqrMagnitude > 0.001f ? framingRoot.up.normalized : Vector3.up;
+        Vector3 feet = bounds.center - up * bounds.extents.y;
+        float height = Mathf.Clamp(bounds.size.y, 1.45f, 2.1f);
+        Vector3 desiredFocus = feet + up * Mathf.Clamp(height * focusHeightRatio, 1.05f, 1.32f);
+
+        focusOffset = Quaternion.Inverse(target.rotation) * (desiredFocus - target.position);
+        distance = Mathf.Clamp(height * 2.2f, minDistance, maxDistance);
+        baseFov = Mathf.Clamp(baseFov, 52f, 58f);
+        _framedTargetId = target.GetInstanceID();
+    }
+
+    Transform ResolveFramingRoot()
+    {
+        PlayerController controller = target.GetComponentInParent<PlayerController>();
+        if (controller != null)
+            return controller.transform;
+
+        return target.root;
+    }
+
+    static bool TryGetTargetBounds(Transform root, out Bounds bounds)
+    {
+        bounds = default;
+        if (root == null)
+            return false;
+
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        bool found = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer rendererRef = renderers[i];
+            if (rendererRef == null)
+                continue;
+
+            if (!found)
+            {
+                bounds = rendererRef.bounds;
+                found = true;
+            }
+            else
+            {
+                bounds.Encapsulate(rendererRef.bounds);
+            }
+        }
+
+        return found;
     }
 
     static float DampingFactor(float sharpness, float deltaTime)

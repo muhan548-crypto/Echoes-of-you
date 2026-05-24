@@ -1,0 +1,220 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/EchoesTheme.uss" />
+    
+    <ui:VisualElement name="pause-root" class="root-fullscreen hidden">
+        <!-- Blur overlay -->
+        <ui:VisualElement class="overlay-blur" />
+        
+        <!-- Background image dimmed -->
+        <ui:VisualElement style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; opacity: 0.3; background-image: url('project://database/Assets/UI/Images/void_fog_bg.png');" />
+        
+        <!-- Top bar -->
+        <ui:VisualElement class="header-bar">
+            <ui:Label text="ECHOES OF THE MIND" class="header-title" />
+        </ui:VisualElement>
+        
+        <!-- Center nav options — named "pause-nav" so C# can hide/show it -->
+        <ui:VisualElement name="pause-nav" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center; flex-direction: column;">
+            <ui:VisualElement style="align-items: center; flex-direction: column;">
+                
+                <!-- RESUME (active/highlighted) -->
+                <ui:Button name="btn-resume" text="RESUME" class="ghost-button ghost-button--primary" style="opacity: 1; color: #c2c1ff;" />
+                
+                <!-- RECALIBRATE (restart level) -->
+                <ui:Button name="btn-recalibrate" text="RECALIBRATE" class="ghost-button" />
+                
+                <!-- SETTINGS -->
+                <ui:Button name="btn-settings" text="SETTINGS" class="ghost-button" />
+                
+                <!-- VOID (exit to menu) -->
+                <ui:Button name="btn-void" text="VOID (EXIT)" class="ghost-button ghost-button--error" />
+                
+            </ui:VisualElement>
+            
+            <!-- Decorative pulse node -->
+            <ui:VisualElement style="margin-top: 96px; align-items: center; justify-content: center; width: 96px; height: 96px;">
+                <ui:VisualElement class="pulse-ring" />
+                <ui:VisualElement class="pulse-node" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- ============================================== -->
+        <!-- BENTO GRID SETTINGS PANEL (hidden by default) -->
+        <!-- ============================================== -->
+        <ui:VisualElement name="pause-settings-panel" class="hidden" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; align-items: center; justify-content: center;">
+            <ui:VisualElement class="overlay-dark" />
+            
+            <ui:VisualElement style="width: 80%; max-width: 960px; max-height: 85%; flex-direction: column;">
+                <!-- Title -->
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <ui:VisualElement>
+                        <ui:Label text="SYSTEM CALIBRATION" class="text-headline-md" style="color: #c2c1ff; letter-spacing: 4.8px;" />
+                        <ui:Label text="ECHOES OF THE MIND — ADJUSTMENT PROTOCOL" class="text-label-caps" style="color: #464554; opacity: 0.7; margin-top: 4px;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="accent-line" style="margin-bottom: 24px;" />
+                
+                <!-- Bento Grid -->
+                <ui:ScrollView class="settings-scroll-container">
+                    <ui:VisualElement class="bento-grid" style="flex-direction: row; flex-wrap: wrap;">
+                    
+                    <!-- CELL 1: AUDIO LOGIC -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-right: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="AUDIO LOGIC" class="bento-cell-title" />
+                            <ui:Label text="🔊" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <!-- Master Volume -->
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Master Volume" class="setting-label" />
+                                <ui:Label name="p-lbl-master-val" text="84%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-sld-master" low-value="0" high-value="1" value="0.84" />
+                        </ui:VisualElement>
+                        
+                        <!-- Music Volume -->
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Music Volume" class="setting-label" />
+                                <ui:Label name="p-lbl-music-val" text="60%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-sld-music" low-value="0" high-value="1" value="0.6" />
+                        </ui:VisualElement>
+                        
+                        <!-- SFX Volume -->
+                        <ui:VisualElement class="setting-row">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="SFX Volume" class="setting-label" />
+                                <ui:Label name="p-lbl-sfx-val" text="72%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-sld-sfx" low-value="0" high-value="1" value="0.72" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 2: VISUAL ARRAY -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-left: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="VISUAL ARRAY" class="bento-cell-title" />
+                            <ui:Label text="🖥" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <!-- Resolution -->
+                        <ui:VisualElement class="resolution-row">
+                            <ui:Label text="RESOLUTION" class="setting-label" />
+                            <ui:DropdownField name="p-ResolutionDropdown" style="width: 200px;" />
+                        </ui:VisualElement>
+                        
+                        <!-- Fullscreen -->
+                        <ui:VisualElement class="toggle-row">
+                            <ui:Label text="FULLSCREEN" class="setting-label" />
+                            <ui:Toggle name="p-FullscreenToggle" />
+                        </ui:VisualElement>
+                        
+                        <!-- V-Sync -->
+                        <ui:VisualElement class="toggle-row">
+                            <ui:Label text="V-SYNC" class="setting-label" />
+                            <ui:Toggle name="p-VsyncToggle" />
+                        </ui:VisualElement>
+                        
+                        <!-- UI Scale -->
+                        <ui:VisualElement class="resolution-row">
+                            <ui:Label text="UI SCALE" class="setting-label" />
+                            <ui:DropdownField name="p-ScaleDropdown" style="width: 200px;" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement class="setting-row" style="margin-top: 8px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Fog Density" class="setting-label" />
+                                <ui:Label name="p-lbl-fog-val" text="0.035" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-sld-fog" low-value="0" high-value="0.1" value="0.035" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 3: NEURAL INTERFACE -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-right: 2%; margin-bottom: 16px;">
+                        <ui:VisualElement class="bento-cell-header">
+                            <ui:Label text="NEURAL INTERFACE" class="bento-cell-title" />
+                            <ui:Label text="🎯" class="bento-cell-icon" />
+                        </ui:VisualElement>
+                        
+                        <!-- Sensitivity Presets -->
+                        <ui:Label text="SENSITIVITY PRESET" class="text-label-caps" style="color: #918fa0; margin-bottom: 8px;" />
+                        <ui:VisualElement class="preset-button-row">
+                            <ui:Button name="p-btn-sens-low" text="LOW" class="preset-button" />
+                            <ui:Button name="p-btn-sens-med" text="MEDIUM" class="preset-button preset-button--active" />
+                            <ui:Button name="p-btn-sens-high" text="HIGH" class="preset-button" />
+                        </ui:VisualElement>
+                        <ui:Label name="p-lbl-sens-val" text="Medium" class="setting-value" style="margin-top: 12px; -unity-text-align: middle-center;" />
+                        
+                        <!-- Camera Sensitivity Slider -->
+                        <ui:VisualElement class="setting-row" style="margin-top: 16px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Camera Sensitivity" class="setting-label" />
+                                <ui:Label name="p-lbl-cam-sens-val" text="1.0" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-SensitivitySlider" low-value="0.1" high-value="5" value="1" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="setting-row" style="margin-top: 16px;">
+                            <ui:VisualElement class="setting-row-header">
+                                <ui:Label text="Echo Opacity" class="setting-label" />
+                                <ui:Label name="p-lbl-echo-val" text="60%" class="setting-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="p-sld-echo" low-value="0" high-value="1" value="0.6" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    
+                    <!-- CELL 4: CALIBRATION STATUS -->
+                    <ui:VisualElement class="bento-cell" style="width: 48%; margin-left: 2%; margin-bottom: 16px; align-items: center; justify-content: center;">
+                        <ui:VisualElement class="bento-cell-header" style="width: 100%;">
+                            <ui:Label text="CALIBRATION STATUS" class="bento-cell-title" />
+                            <ui:Label text="◆" class="bento-cell-icon" style="color: #c2c1ff;" />
+                        </ui:VisualElement>
+                        
+                        <ui:VisualElement style="flex-grow: 1; align-items: center; justify-content: center;">
+                            <ui:Label text="SYNC" class="calibration-status-value" />
+                            <ui:Label text="SYSTEM_NOMINAL" class="calibration-status-label" style="margin-top: 8px;" />
+                            <ui:VisualElement style="width: 64px; height: 1px; background-color: rgba(194,193,255,0.3); margin-top: 16px; margin-bottom: 16px;" />
+                            <ui:Label text="LATENCY: 0.2ms" class="text-body-sm" style="color: #918fa0; font-size: 10px;" />
+                            <ui:Label text="FRAME_SYNC: ACTIVE" class="text-body-sm" style="color: #918fa0; font-size: 10px; margin-top: 4px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                </ui:ScrollView>
+                
+                <!-- Footer Actions -->
+                <ui:VisualElement class="calibration-footer">
+                    <ui:Button name="p-btn-restore-defaults" text="RESTORE DEFAULTS" class="calibration-btn-ghost" />
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:Button name="p-btn-settings-back" text="DISCARD" class="calibration-btn-outline" style="margin-right: 12px;" />
+                        <ui:Button name="p-btn-settings-apply" text="APPLY" class="calibration-btn-primary" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Keyboard hints bottom-right -->
+        <ui:VisualElement style="position: absolute; bottom: 64px; right: 64px; align-items: flex-end; flex-direction: column;">
+            <ui:VisualElement style="flex-direction: row; align-items: center; margin-bottom: 12px;">
+                <ui:Label text="SELECT" class="text-label-caps" style="margin-right: 12px; color: #dce1fb;" />
+                <ui:VisualElement style="width: 32px; height: 32px; border-width: 1px; border-color: rgba(255,255,255,0.2); border-radius: 2px; align-items: center; justify-content: center;">
+                    <ui:Label text="ENTER" style="font-size: 10px; color: #dce1fb;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-direction: row; align-items: center;">
+                <ui:Label text="BACK" class="text-label-caps" style="margin-right: 12px; color: #dce1fb;" />
+                <ui:VisualElement style="width: 32px; height: 32px; border-width: 1px; border-color: rgba(255,255,255,0.2); border-radius: 2px; align-items: center; justify-content: center;">
+                    <ui:Label text="ESC" style="font-size: 10px; color: #dce1fb;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Footer -->
+        <ui:VisualElement class="footer-bar">
+            <ui:Label text="© NULL_VOID_RESEARCH_STATION" class="text-label-caps" style="color: #bec6e0;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

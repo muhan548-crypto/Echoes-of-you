@@ -60,7 +60,7 @@ public class EchoRecorder : MonoBehaviour
 
     void Update()
     {
-        bool hold = Input.GetKey(KeyCode.E);
+        bool hold = Input.GetKey(KeyCode.E) || Input.GetKey(KeyCode.R);
 
         if (hold && !_recording)
             StartRecording();
@@ -100,8 +100,8 @@ public class EchoRecorder : MonoBehaviour
         if (_anim == null) _anim = GetComponentInChildren<Animator>();
         if (_anim != null && _anim.runtimeAnimatorController != null) _anim.SetBool("IsRecording", true);
         RecordingStarted?.Invoke();
+        GameStateController.Instance?.SetRecording(true, transform.position, transform.up);
         hud?.SetPrompt("Suelta R para crear un eco", 1.6f);
-        GameFeelController.Instance?.PlayRecordStart(transform.position, transform.up);
         RefreshHud();
     }
 
@@ -113,6 +113,7 @@ public class EchoRecorder : MonoBehaviour
         _recording = false;
         float elapsed = Time.time - _recordStartTime;
         _lastRecordDuration = elapsed;
+        GameStateController.Instance?.SetRecording(false, transform.position, transform.up);
 
         GameFeelController.Instance?.PlayRecordStop(transform.position);
 
@@ -138,6 +139,7 @@ public class EchoRecorder : MonoBehaviour
         TrimEchoesIfNeeded();
 
         GameObject instance = Instantiate(echoPrefab, echoSpawnRoot.position, echoSpawnRoot.rotation);
+        instance.tag = "Echo";
         var playback = instance.GetComponent<EchoPlayback>();
         if (playback == null)
             playback = instance.AddComponent<EchoPlayback>();
@@ -172,6 +174,7 @@ public class EchoRecorder : MonoBehaviour
         _recording = false;
         _frames.Clear();
         _lastRecordDuration = 0f;
+        GameStateController.Instance?.SetRecording(false, transform.position, transform.up);
 
         for (int i = 0; i < _echoes.Count; i++)
         {
