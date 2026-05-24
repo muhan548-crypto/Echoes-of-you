@@ -114,6 +114,7 @@ public static class LevelValidator
         return heights.ToArray();
     }
 
+    [MenuItem("Echoes of You/Production/Validate All Levels", false, 211)]
     public static void ValidateAllLevels()
     {
         string[] levelScenes =
@@ -124,7 +125,8 @@ public static class LevelValidator
             "Assets/Scenes/Level_04.unity",
             "Assets/Scenes/Level_05.unity",
             "Assets/Scenes/Level_06.unity",
-            "Assets/Scenes/Level_07.unity"
+            "Assets/Scenes/Level_07.unity",
+            "Assets/Scenes/Level_08.unity"
         };
 
         int passed = 0;
